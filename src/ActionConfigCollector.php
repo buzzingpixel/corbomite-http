@@ -30,9 +30,12 @@ class ActionConfigCollector
 
         if (file_exists($appJsonPath)) {
             $appJson = json_decode(file_get_contents($appJsonPath), true);
-            $configFilePath = APP_BASE_PATH .
-                '/' .
-                $appJson['extra']['httpActionConfigFilePath'] ?? 'asdf';
+
+            $filePath = isset($appJson['extra']['httpActionConfigFilePath']) ?
+                $appJson['extra']['httpActionConfigFilePath'] :
+                'asdf';
+
+            $configFilePath = APP_BASE_PATH . '/' . $filePath;
 
             if (file_exists($configFilePath)) {
                 $configInclude = include $configFilePath;
@@ -43,11 +46,15 @@ class ActionConfigCollector
         foreach ($this->composerPackages as $package) {
             $extra = $package->getExtra();
 
+            $filePath = isset($extra['httpActionConfigFilePath']) ?
+                $extra['httpActionConfigFilePath'] :
+                'asdf';
+
             $configFilePath = APP_BASE_PATH .
                 '/vendor/' .
                 $package->getName() .
                 '/' .
-                ($extra['httpActionConfigFilePath'] ?? 'asdf');
+                $filePath;
 
             if (file_exists($configFilePath)) {
                 $configInclude = include $configFilePath;

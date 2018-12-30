@@ -30,9 +30,12 @@ class RouteConfigFileCollector
 
         if (file_exists($appJsonPath)) {
             $appJson = json_decode(file_get_contents($appJsonPath), true);
-            $configFilePath = APP_BASE_PATH .
-                '/' .
-                $appJson['extra']['httpRouteConfigFilePath'] ?? 'asdf';
+
+            $filePath = isset($appJson['extra']['httpRouteConfigFilePath']) ?
+                $appJson['extra']['httpRouteConfigFilePath'] :
+                'asdf';
+
+            $configFilePath = APP_BASE_PATH . '/' . $filePath;
 
             if (file_exists($configFilePath)) {
                 $routeConfigFiles[] = $configFilePath;
@@ -42,11 +45,15 @@ class RouteConfigFileCollector
         foreach ($this->composerPackages as $package) {
             $extra = $package->getExtra();
 
+            $filePath = isset($extra['httpRouteConfigFilePath']) ?
+                $extra['httpRouteConfigFilePath'] :
+                'asdf';
+
             $configFilePath = APP_BASE_PATH .
                 '/vendor/' .
                 $package->getName() .
                 '/' .
-                ($extra['httpRouteConfigFilePath'] ?? 'asdf');
+                $filePath;
 
             if (file_exists($configFilePath)) {
                 $routeConfigFiles = $configFilePath;
