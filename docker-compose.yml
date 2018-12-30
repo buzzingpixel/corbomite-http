@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  web:
+    image: buzzingpixel/nginx:latest
+    container_name: nginx-corbomite-http
+    environment:
+      HOSTNAME: nginx-corbomite-http
+    ports:
+      - "12500:80"
+    volumes:
+      - .:/app:delegated
+      - ./dev/null:/app/.git:delegated
+      - ./dev/null:/app/.idea:delegated
+      - ./dev/null:/app/node_modules:delegated
+      - ./serverConfig/nginx/site.test.conf:/etc/nginx/conf.d/site.conf:delegated
+  php:
+    image: buzzingpixel/php7.2:latest
+    container_name: php-corbomite-http
+    environment:
+      HOSTNAME: php-corbomite-http
+    user: "1000:50"
+    volumes:
+      - .:/app:delegated
+      - ./dev/null:/app/.git:delegated
+      - ./dev/null:/app/.idea:delegated
+      - ./dev/null:/app/node_modules:delegated
+      - ./serverConfig/php/php-custom-config.ini:/usr/local/etc/php/conf.d/php-custom-config.ini:delegated
+      - ./serverConfig/php/php-config-dev.ini:/usr/local/etc/php/conf.d/php-env-config.ini:delegated
