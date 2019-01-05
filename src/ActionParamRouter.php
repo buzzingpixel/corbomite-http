@@ -7,7 +7,7 @@ declare(strict_types=1);
  * @license Apache-2.0
  */
 
-namespace src\app\http;
+namespace corbomite\http;
 
 use Exception;
 use corbomite\di\Di;
@@ -71,7 +71,7 @@ class ActionParamRouter implements MiddlewareInterface
         }
 
         if (! class_exists($actionClass)) {
-            throw new Exception('Action class config not found');
+            throw new Exception('Action class not found');
         }
 
         if (! method_exists($actionClass, $actionMethod)) {

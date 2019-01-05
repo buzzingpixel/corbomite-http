@@ -16,6 +16,7 @@ use FastRoute\RouteCollector;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
+use corbomite\http\ActionParamRouter;
 use Whoops\Handler\PrettyPageHandler;
 use function FastRoute\simpleDispatcher;
 use corbomite\http\factories\RelayFactory;
@@ -73,7 +74,8 @@ class Kernel
         }
 
         $uri = trim(ltrim($_SERVER['REQUEST_URI'], '/'), '/');
-        $uriSegments = explode('/', parse_url($uri, PHP_URL_PATH));
+        $uri = parse_url($uri, PHP_URL_PATH) ?: '';
+        $uriSegments = explode('/', \is_string($uri) ? $uri : '');
 
         // Ignore these starting URI segments for CsrfChecking
         defined('CSRF_EXEMPT_SEGMENTS') || define('CSRF_EXEMPT_SEGMENTS', []);
@@ -87,6 +89,10 @@ class Kernel
                 CsrfMiddleware::class
             );
         }
+
+        $middlewareQueue[] = $this->di->makeFromDefinition(
+            ActionParamRouter::class
+        );
 
         /** @var RouteConfigFileCollector $collector */
         $collector = $this->di->makeFromDefinition(

@@ -14,7 +14,7 @@ use Middlewares\RequestHandler;
 use Composer\Console\Application;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
-use src\app\http\ActionParamRouter;
+use corbomite\http\ActionParamRouter;
 use Whoops\Handler\PrettyPageHandler;
 use Zend\Diactoros\ServerRequestFactory;
 use corbomite\http\ActionConfigCollector;

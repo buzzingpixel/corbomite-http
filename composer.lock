@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "653130de3ecd1b8e616c6fbf55f81049",
+    "content-hash": "5bcb3d6b6cb2594f2b3277d1b65458c3",
     "packages": [
         {
             "name": "buzzingpixel/corbomite-di",
