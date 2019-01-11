@@ -1,21 +1,20 @@
 {
     "name": "buzzingpixel/corbomite-http",
     "description": "Corbomite HTTP",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "license": "Apache-2.0",
     "homepage": "https://buzzingpixel.com/",
     "require": {
         "php": ">=7.2",
-        "ext-json": "*",
-        "composer/composer": "^1.8",
-        "buzzingpixel/corbomite-di": "^1.0",
+        "buzzingpixel/corbomite-di": "^1.0.1",
         "middlewares/fast-route": "^1.2",
         "franzl/whoops-middleware": "^1.0",
         "middlewares/request-handler": "^1.4",
         "zendframework/zend-diactoros": "^1.8",
         "zendframework/zend-httphandlerrunner": "^1.0",
         "relay/relay": "2.x@dev",
-        "grafikart/psr15-csrf-middleware": "^1.0"
+        "grafikart/psr15-csrf-middleware": "^1.0",
+        "buzzingpixel/corbomite-config-collector": "^1.0"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master",

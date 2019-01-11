@@ -16,9 +16,9 @@ use FastRoute\RouteCollector;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
-use corbomite\http\ActionParamRouter;
 use Whoops\Handler\PrettyPageHandler;
 use function FastRoute\simpleDispatcher;
+use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Franzl\Middleware\Whoops\WhoopsMiddleware;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
@@ -94,14 +94,11 @@ class Kernel
             ActionParamRouter::class
         );
 
-        /** @var RouteConfigFileCollector $collector */
-        $collector = $this->di->makeFromDefinition(
-            RouteConfigFileCollector::class
-        );
+        $collector = $this->di->getFromDefinition(Collector::class);
 
         $middlewareQueue[] = new RouteProcessor(simpleDispatcher(
             function (RouteCollector $routeCollector) use ($collector) {
-                foreach ($collector() as $path) {
+                foreach ($collector('httpRouteConfigFilePath') as $path) {
                     require $path;
                 }
             }

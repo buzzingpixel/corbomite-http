@@ -13,17 +13,16 @@ use Exception;
 use corbomite\di\Di;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use corbomite\configcollector\Collector;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 class ActionParamRouter implements MiddlewareInterface
 {
-    private $actionConfig;
     private $di;
 
-    public function __construct(array $actionConfig, Di $di)
+    public function __construct(Di $di)
     {
-        $this->actionConfig = $actionConfig;
         $this->di = $di;
     }
 
@@ -63,8 +62,12 @@ class ActionParamRouter implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        $actionClass = $this->actionConfig[$action]['class'] ?? '';
-        $actionMethod = $this->actionConfig[$action]['method'] ?? '__invoke';
+        $actionConfig = $this->di->getFromDefinition(Collector::class)->collect(
+            'httpActionConfigFilePath'
+        );
+
+        $actionClass = $actionConfig[$action]['class'] ?? '';
+        $actionMethod = $actionConfig[$action]['method'] ?? '__invoke';
 
         if (! $actionClass) {
             throw new Exception('Action class config not found');
