@@ -98,7 +98,10 @@ class Kernel
 
         $middlewareQueue[] = new RouteProcessor(simpleDispatcher(
             function (RouteCollector $routeCollector) use ($collector) {
-                foreach ($collector('httpRouteConfigFilePath') as $path) {
+                $paths = $collector->getPathsFromExtraKey(
+                    'httpRouteConfigFilePath'
+                );
+                foreach ($paths as $path) {
                     require $path;
                 }
             }
