@@ -14,6 +14,7 @@ use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
 use corbomite\http\ActionParamRouter;
+use corbomite\http\HttpTwigExtension;
 use Whoops\Handler\PrettyPageHandler;
 use Zend\Diactoros\ServerRequestFactory;
 use corbomite\http\factories\RelayFactory;
@@ -50,5 +51,8 @@ return [
     },
     ServerRequest::class => function () {
         return ServerRequestFactory::fromGlobals();
+    },
+    HttpTwigExtension::class => function () {
+        return new HttpTwigExtension(Di::get(CsrfMiddleware::class));
     },
 ];
