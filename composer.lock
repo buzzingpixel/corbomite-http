@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "69fd3ce81fd1a1b8bdcd276411b63f42",
+    "content-hash": "ea77f09da16ceac4f618d14d9b99f864",
     "packages": [
         {
             "name": "buzzingpixel/corbomite-config-collector",
-            "version": "1.0.3",
+            "version": "1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/buzzingpixel/corbomite-config-collector.git",
-                "reference": "9130126068d61492e8bfd734225c5c3e031bc928"
+                "reference": "167c077dd1642d2cd12140a41ca96f09f09eba25"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/buzzingpixel/corbomite-config-collector/zipball/9130126068d61492e8bfd734225c5c3e031bc928",
-                "reference": "9130126068d61492e8bfd734225c5c3e031bc928",
+                "url": "https://api.github.com/repos/buzzingpixel/corbomite-config-collector/zipball/167c077dd1642d2cd12140a41ca96f09f09eba25",
+                "reference": "167c077dd1642d2cd12140a41ca96f09f09eba25",
                 "shasum": ""
             },
             "require": {
@@ -49,7 +49,7 @@
                 }
             ],
             "description": "Corbomite Config Collector",
-            "time": "2019-01-12T23:51:07+00:00"
+            "time": "2019-01-13T00:17:00+00:00"
         },
         {
             "name": "buzzingpixel/corbomite-di",
@@ -1268,20 +1268,20 @@
     "packages-dev": [
         {
             "name": "buzzingpixel/corbomite-twig",
-            "version": "1.0.3",
+            "version": "1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/buzzingpixel/corbomite-twig.git",
-                "reference": "54397a0d46ac63ed4c0829424d38bf7d06cd3e78"
+                "reference": "2d5373db82274bbdef37bb3ea2277f9d7a1bc219"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/buzzingpixel/corbomite-twig/zipball/54397a0d46ac63ed4c0829424d38bf7d06cd3e78",
-                "reference": "54397a0d46ac63ed4c0829424d38bf7d06cd3e78",
+                "url": "https://api.github.com/repos/buzzingpixel/corbomite-twig/zipball/2d5373db82274bbdef37bb3ea2277f9d7a1bc219",
+                "reference": "2d5373db82274bbdef37bb3ea2277f9d7a1bc219",
                 "shasum": ""
             },
             "require": {
-                "buzzingpixel/corbomite-config-collector": "^1.0.2",
+                "buzzingpixel/corbomite-config-collector": "^1.0.4",
                 "buzzingpixel/corbomite-di": "^1.0.1",
                 "php": ">=7.2",
                 "twig/twig": "^2.5"
@@ -1315,7 +1315,7 @@
             ],
             "description": "Corbomite Twig",
             "homepage": "https://buzzingpixel.com/",
-            "time": "2019-01-11T23:14:46+00:00"
+            "time": "2019-01-13T00:24:28+00:00"
         },
         {
             "name": "doctrine/instantiator",

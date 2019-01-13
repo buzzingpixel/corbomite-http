@@ -161,7 +161,7 @@ return [
 
 ## Twig Extension
 
-Corbomite HTTP provides a [Twig](https://twig.symfony.com/) function for throwing an HTTP error from Twig. The default is to throw the 404 exception. If you're using [Corbomite Twig](https://github.com/buzzingpixel/corbomite-twig) this extension will be loaded automatically. Otherwise, you can add it to your own Twig instance Twig's `addExtension()` method like this:
+Corbomite HTTP provides a [Twig](https://twig.symfony.com/) extension. If you're using [Corbomite Twig](https://github.com/buzzingpixel/corbomite-twig) this extension will be loaded automatically. Otherwise, you can add it to your own Twig instance Twig's `addExtension()` method like this:
 
 ```php
 <?php
@@ -179,6 +179,22 @@ $twig = new Environment(new FilesystemLoader('/path/to/templates'), [
 
 $twig->addExtension(new HttpTwigExtension());
 ```
+
+### `{{ throwHttpError() }}`
+
+This twig function is for throwing an HTTP error from Twig. The default is to throw the 404 exception. Pass 500 in as an argument throw a 500 internal server error.
+
+### `{{ getCsrfFormKey() }}`
+
+Gets the form key name for the CSRF token.
+
+### `{{ generateCsrfToken() }}`
+
+Generates and outputs a CSRF token.
+
+### `{{ getCsrfInput() }}`
+
+Outputs a hidden input for the CSRF token.
 
 ## License
 
