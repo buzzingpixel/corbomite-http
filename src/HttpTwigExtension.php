@@ -15,14 +15,19 @@ use Twig_Extension;
 use Grafikart\Csrf\CsrfMiddleware;
 use corbomite\http\exceptions\Http404Exception;
 use corbomite\http\exceptions\Http500Exception;
+use corbomite\http\interfaces\RequestHelperInterface;
 
 class HttpTwigExtension extends Twig_Extension
 {
     private $csrfMiddleware;
+    private $requestHelper;
 
-    public function __construct(CsrfMiddleware $csrfMiddleware)
-    {
+    public function __construct(
+        CsrfMiddleware $csrfMiddleware,
+        RequestHelperInterface $requestHelper
+    ) {
         $this->csrfMiddleware = $csrfMiddleware;
+        $this->requestHelper = $requestHelper;
     }
 
     public function getFunctions(): array
@@ -32,6 +37,7 @@ class HttpTwigExtension extends Twig_Extension
             new Twig_Function('getCsrfFormKey', [$this, 'getCsrfFormKey']),
             new Twig_Function('generateCsrfToken', [$this, 'generateCsrfToken']),
             new Twig_Function('getCsrfInput', [$this, 'getCsrfInput']),
+            new Twig_Function('requestHelper', [$this, 'requestHelper']),
         ];
     }
 
@@ -55,6 +61,7 @@ class HttpTwigExtension extends Twig_Extension
 
     public function generateCsrfToken(): string
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         return $this->csrfMiddleware->generateToken();
     }
 
@@ -68,5 +75,10 @@ class HttpTwigExtension extends Twig_Extension
                 '">',
             'UTF-8'
         );
+    }
+
+    public function requestHelper(): RequestHelperInterface
+    {
+        return $this->requestHelper;
     }
 }

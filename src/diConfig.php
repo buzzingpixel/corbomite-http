@@ -6,12 +6,12 @@ declare(strict_types=1);
  * @copyright 2019 BuzzingPixel, LLC
  * @license Apache-2.0
  */
-
 use corbomite\di\Di;
 use corbomite\http\Kernel;
 use Whoops\Run as WhoopsRun;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
+use corbomite\http\RequestHelper;
 use Grafikart\Csrf\CsrfMiddleware;
 use corbomite\http\ActionParamRouter;
 use corbomite\http\HttpTwigExtension;
@@ -54,5 +54,8 @@ return [
     },
     HttpTwigExtension::class => function () {
         return new HttpTwigExtension(Di::get(CsrfMiddleware::class));
+    },
+    RequestHelper::class => function () {
+        return new RequestHelper(Di::get(ServerRequest::class));
     },
 ];
