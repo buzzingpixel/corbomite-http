@@ -53,7 +53,10 @@ return [
         return ServerRequestFactory::fromGlobals();
     },
     HttpTwigExtension::class => function () {
-        return new HttpTwigExtension(Di::get(CsrfMiddleware::class));
+        return new HttpTwigExtension(
+            Di::get(CsrfMiddleware::class),
+            Di::get(RequestHelper::class)
+        );
     },
     RequestHelper::class => function () {
         return new RequestHelper(Di::get(ServerRequest::class));
