@@ -38,7 +38,7 @@ class Kernel
      */
     public function __invoke(?string $errorPageClass = null): void
     {
-        session_start();
+        @session_start();
 
         $devMode = getenv('DEV_MODE') === 'true';
 
