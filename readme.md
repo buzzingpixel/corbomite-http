@@ -1,5 +1,7 @@
 # Corbomite HTTP
 
+<p><img src="https://api.travis-ci.org/buzzingpixel/corbomite-http.svg?branch=master"></p>
+
 Part of BuzzingPixel's Corbomite project.
 
 Provides a light framework for responding to HTTP requests.
