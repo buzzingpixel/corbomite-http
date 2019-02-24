@@ -67,7 +67,7 @@ class Kernel
             }
 
             if (! $class) {
-                $class = new $class();
+                $class = new $errorPageClass();
             }
 
             $middlewareQueue[] = $class;
