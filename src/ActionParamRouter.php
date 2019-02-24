@@ -57,11 +57,6 @@ class ActionParamRouter implements MiddlewareInterface
             }
         }
 
-        // Pass the request on up the middleware stack
-        if (! $action) {
-            return $handler->handle($request);
-        }
-
         $actionConfig = $this->di->getFromDefinition(Collector::class)->collect(
             'httpActionConfigFilePath'
         );
