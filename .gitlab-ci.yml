@@ -1,8 +1,0 @@
-image: buzzingpixel/php7.2:latest
-
-before_script:
-  - composer install
-
-test:app:
-  script:
-    - ./vendor/bin/phpunit
