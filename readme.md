@@ -1,6 +1,6 @@
 # Corbomite HTTP
 
-<p><img src="https://api.travis-ci.org/buzzingpixel/corbomite-http.svg?branch=master"></p>
+<p><a href="https://travis-ci.org/buzzingpixel/corbomite-http"><img src="https://api.travis-ci.org/buzzingpixel/corbomite-http.svg?branch=master"></a></p>
 
 Part of BuzzingPixel's Corbomite project.
 
