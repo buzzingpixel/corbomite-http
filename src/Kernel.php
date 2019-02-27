@@ -26,10 +26,12 @@ use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 class Kernel
 {
     private $di;
+    private $devMode;
 
-    public function __construct(Di $di)
+    public function __construct(Di $di, bool $devMode = false)
     {
         $this->di = $di;
+        $this->devMode = $devMode;
     }
 
     /**
@@ -40,10 +42,8 @@ class Kernel
     {
         @session_start();
 
-        $devMode = getenv('DEV_MODE') === 'true';
-
         // If we're in dev mode, load up error reporting
-        if ($devMode) {
+        if ($this->devMode) {
             ini_set('display_errors', '1');
             ini_set('display_startup_errors', '1');
             error_reporting(E_ALL);
@@ -59,7 +59,7 @@ class Kernel
         }
 
         // If we're not in dev mode, we'll want to capture all the errors
-        if (! $devMode && $errorPageClass) {
+        if (! $this->devMode && $errorPageClass) {
             $class = null;
 
             if ($this->di->hasDefinition($errorPageClass)) {

@@ -23,7 +23,10 @@ use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 
 return [
     Kernel::class => function () {
-        return new Kernel(new Di());
+        return new Kernel(
+            new Di(),
+            getenv('DEV_MODE') === 'true'
+        );
     },
     WhoopsRun::class => function () {
         return new WhoopsRun();
