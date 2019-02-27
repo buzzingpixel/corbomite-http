@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
+use Psr\Http\Message\UriInterface;
 use corbomite\http\ActionParamRouter;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
@@ -20,9 +21,6 @@ class NoDevModeHasErrorClassWithDiTest extends TestCase
 {
     public function test()
     {
-        $_SERVER['REQUEST_URI'] = '';
-        putenv('DEV_MODE=false');
-
         $actionParamRouter = self::createMock(ActionParamRouter::class);
 
         $requestHandler = self::createMock(RequestHandler::class);
@@ -37,11 +35,26 @@ class NoDevModeHasErrorClassWithDiTest extends TestCase
             ->method('make')
             ->willReturn($requestHandlerFromRelay);
 
+        $uriInterface = self::createMock(UriInterface::class);
+
+        $uriInterface->expects(self::once())
+            ->method('getPath')
+            ->willReturn('');
+
         $serverRequest = self::createMock(ServerRequest::class);
+
+        $serverRequest->expects(self::once())
+            ->method('getUri')
+            ->willReturn($uriInterface);
 
         $csrfMiddleware = self::createMock(CsrfMiddleware::class);
 
         $collector = self::createMock(Collector::class);
+
+        $collector->expects(self::once())
+            ->method('getExtraKeyAsArray')
+            ->with(self::equalTo('corbomiteHttpConfig'))
+            ->willReturn([]);
 
         $collector->expects(self::once())
             ->method('getPathsFromExtraKey')

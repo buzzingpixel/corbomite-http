@@ -5,29 +5,21 @@ namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
 use corbomite\di\Di;
-use Whoops\Run as WhoopsRun;
+use corbomite\http\Kernel;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
 use Psr\Http\Message\UriInterface;
-use Whoops\Handler\PrettyPageHandler;
 use corbomite\http\ActionParamRouter;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
-use Franzl\Middleware\Whoops\WhoopsMiddleware;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 
-use corbomite\http\Kernel;
-
-class DevModeTest extends TestCase
+class CsrfExemptSegmentsTest extends TestCase
 {
     public function test()
     {
-        ini_set('display_errors', '0');
-        ini_set('display_startup_errors', '0');
-        error_reporting(0);
-
         $actionParamRouter = self::createMock(ActionParamRouter::class);
 
         $requestHandler = self::createMock(RequestHandler::class);
@@ -46,7 +38,7 @@ class DevModeTest extends TestCase
 
         $uriInterface->expects(self::once())
             ->method('getPath')
-            ->willReturn('');
+            ->willReturn('/test-segment/asdf');
 
         $serverRequest = self::createMock(ServerRequest::class);
 
@@ -61,7 +53,13 @@ class DevModeTest extends TestCase
         $collector->expects(self::once())
             ->method('getExtraKeyAsArray')
             ->with(self::equalTo('corbomiteHttpConfig'))
-            ->willReturn([]);
+            ->willReturn([
+                'csrfExemptSegments' => [
+                    '',
+                    'adsf',
+                    'test-segment',
+                ],
+            ]);
 
         $collector->expects(self::once())
             ->method('getPathsFromExtraKey')
@@ -104,29 +102,17 @@ class DevModeTest extends TestCase
                             return $csrfMiddleware;
                         case ServerRequest::class:
                             return $serverRequest;
-                        case KernelErrorClass::class:
-                            return new KernelErrorClass();
-                        case WhoopsRun::class:
-                            return new WhoopsRun();
-                        case PrettyPageHandler::class:
-                            return new PrettyPageHandler();
-                        case WhoopsMiddleware::class:
-                            return new WhoopsMiddleware();
                         default:
                             throw new \Exception('Unknown class');
                     }
                 }
             );
 
-        $kernel = new Kernel($di, true);
+        $kernel = new Kernel($di);
 
-        $kernel->__invoke(KernelErrorClass::class);
+        $kernel->__invoke();
 
         self::assertIsBool($_SERVER['REQUIRE_FILE']);
-        self::assertTrue($_SERVER['REQUIRE_FILE']);
-
-        self::assertEquals('1', ini_get('display_errors'));
-        self::assertEquals('1', ini_get('display_startup_errors'));
-        self::assertEquals(E_ALL, error_reporting());
+        self::assertTrue($_SERVER['REQUIRE_FILE']   );
     }
 }

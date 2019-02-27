@@ -40,6 +40,12 @@ class Kernel
      */
     public function __invoke(?string $errorPageClass = null): void
     {
+        $collector = $this->di->getFromDefinition(Collector::class);
+
+        $config = $collector->getExtraKeyAsArray('corbomiteHttpConfig');
+
+        $serverRequest = $this->di->makeFromDefinition(ServerRequest::class);
+
         // If we're in dev mode, load up error reporting
         if ($this->devMode) {
             ini_set('display_errors', '1');
@@ -71,17 +77,15 @@ class Kernel
             $middlewareQueue[] = $class;
         }
 
-        $uri = trim(ltrim($_SERVER['REQUEST_URI'], '/'), '/');
+        $uri = trim(ltrim($serverRequest->getUri()->getPath(), '/'), '/');
         $uri = parse_url($uri, PHP_URL_PATH) ?: '';
         $uriSegments = explode('/', \is_string($uri) ? $uri : '');
 
         // Ignore these starting URI segments for CsrfChecking
-        defined('CSRF_EXEMPT_SEGMENTS') || define('CSRF_EXEMPT_SEGMENTS', []);
-        $csrfExempt = \is_array(CSRF_EXEMPT_SEGMENTS) ?
-            CSRF_EXEMPT_SEGMENTS :
-            [CSRF_EXEMPT_SEGMENTS];
+        $csrfExempt = $config['csrfExemptSegments'] ?? [];
 
         if (! in_array($uriSegments[0], $csrfExempt, true)) {
+            @session_start();
             /** @noinspection PhpUnhandledExceptionInspection */
             $middlewareQueue[] = $this->di->makeFromDefinition(
                 CsrfMiddleware::class
@@ -91,8 +95,6 @@ class Kernel
         $middlewareQueue[] = $this->di->makeFromDefinition(
             ActionParamRouter::class
         );
-
-        $collector = $this->di->getFromDefinition(Collector::class);
 
         $middlewareQueue[] = new RouteProcessor(simpleDispatcher(
             function (RouteCollector $routeCollector) use ($collector) {
@@ -113,9 +115,7 @@ class Kernel
         $this->di->makeFromDefinition(SapiEmitter::class)->emit(
             $this->di->makeFromDefinition(RelayFactory::class)
                 ->make($middlewareQueue)
-                ->handle(
-                    $this->di->makeFromDefinition(ServerRequest::class)
-                )
+                ->handle($serverRequest)
         );
     }
 }
