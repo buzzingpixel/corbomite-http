@@ -8,47 +8,37 @@ Provides a light framework for responding to HTTP requests.
 
 ## Usage
 
-In your HTTP front controller, use the dependency injector to call the Kernel (note that `APP_BASE_PATH` must be defined).
+In your HTTP front controller, use the dependency injector to call the Kernel (note that `APP_BASE_PATH` can optionally be defined as a constant and must be where your vendor directory resides. Otherwise the path to your vendor directory will be figured out automatically).
 
 ```php
 <?php
 declare(strict_types=1);
 
-// phpcs:ignoreFile
-
 use corbomite\di\Di;
 use corbomite\http\Kernel as HttpKernel;
 
-define('APP_BASE_PATH', __DIR__);
-define('APP_VENDOR_PATH', APP_BASE_PATH . '/vendor');
-
-require APP_VENDOR_PATH . '/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 Di::get(HttpKernel::class)();
 ```
 
-## CSRF
+### Kernel Method Arguments
 
-Corbomite HTTP implements [CSRF PSR-15 Middleware](https://github.com/Grafikart/PSR15-CsrfMiddleware) to prevent cross-site forgery on post requests. However, sometimes it may be desirable for certain uri starting segments not to implement CSRF protection. In those cases, you can define a constant before the Kernel is run to define the segment or segments that should not implement CSRF protection:
+The Kernel can receive up to two arguments.
 
-```php
-define('CSRF_EXEMPT_SEGMENTS', 'my-segment');
+If the first argument is an array, the second argument will be ignored, and the first argument as an array must send class names or class instances as values of the array that implement `\Psr\Http\Server\MiddlewareInterface`. These classes will be added to the middleware stack after any error handlers are added (and after the CSRF middleware if that's not disabled) and before Corbomite HTTP's Action params and routing.
 
-// or
+If the first argument is a string or a class, it must implement `\Psr\Http\Server\MiddlewareInterface` and will be added as the error handler if the environment variable `DEV_MODE` is not set to a string of `true`. The second argument then can be an array of middleware as above.
 
-define('CSRF_EXEMPT_SEGMENTS', [
-    'my-segment',
-    'another-segment',
-]);
-```
+### Error Handling
 
-## Dev mode
+If the environment variable `DEV_MODE` is set to a string of `true`, the Kernel will attempt to set PHP error output to maximum and add `\Franzl\Middleware\Whoops\WhoopsMiddleware` as the first item to the middleware stack. In this way, as you develop, you can get whatever information and trace you need over your HTTP stack when an error is encountered.
 
-The Kernel looks for an environment variable named `DEV_MODE`. If that is set to a string of `'true'` the Kernel will attempt to crank up PHP error reporting, and will register [Whoops](https://github.com/filp/whoops) for error reporting.
+If not in dev mode, and if you've provided a middleware to handle errors as described above, then your provided error middleware will be the first thing added to the middleware stack. In this way, you have a chance to render error pages in your app in production.
 
-## Error page class
+If you send a string class name, the Kernel will attempt to get the class from the [Corbomite Dependency Injector](https://github.com/buzzingpixel/corbomite-di) and fall back to `new`ing up the class.
 
-When not in dev mode, you can send a fully qualified class name as an argument to the Kernel's `__invoke()` method. This class will be added to the Middleware queue so you could implement a try/catch to handle errors. That class must implement the `\Psr\Http\Server\MiddlewareInterface`. Here's an example of such a class:
+Here's an example of an error handler middleware class:
 
 ```php
 <?php
@@ -59,10 +49,10 @@ namespace src\app\http;
 use Throwable;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use some\name\space\RenderErrorPageAction;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use corbomite\http\exceptions\Http404Exception;
-use some\name\space\RenderErrorPageAction;
 
 class ErrorPages implements MiddlewareInterface
 {
@@ -94,29 +84,59 @@ class ErrorPages implements MiddlewareInterface
 }
 ```
 
-This allows you to render custom error pages.
+### CSRF Protection
 
-The Kernel will attempt to get the specified class from the [Corbomite Dependency Injector](https://github.com/buzzingpixel/corbomite-di) and fall back to `new`ing up the class.
+By default, Corbomite HTTP adds [CSRF PSR-15 Middleware](https://github.com/Grafikart/PSR15-CsrfMiddleware) to the middleware stack to prevent cross-site forgery on post requests.
 
-## Routing
+Sometimes, it may be desirable to have certain segments that are exempt from CSRF middleware. If you wish to disable the middleware for certain segments, you can define a config for the disabled segments in your composer.json extra object:
+
+```json
+{
+    "name": "my/app",
+    "extra": {
+        "corbomiteHttpConfig": {
+            "csrfExemptSegments": [
+                "my-segment",
+                "segment"
+            ]
+        }
+    }
+}
+```
+
+You can also disable the CSRF middleware altogether in the JSON extra object like so:
+
+```json
+{
+    "name": "my/app",
+    "extra": {
+        "corbomiteHttpConfig": {
+            "disableCsrfMiddleware": true
+        }
+    }
+}
+```
+
+### Routing
 
 Corbomite HTTP uses [FastRoute](https://github.com/nikic/FastRoute) for routing. Your app or any composer package can register routes by providing a `httpRouteConfigFilePath` in the `extra` composer.json object.
 
 ```json
 {
-    "name": "vendor/name",
+    "name": "my/app",
     "extra": {
         "httpRouteConfigFilePath": "src/routes.php"
     }
 }
 ```
 
-The called route file will have a variable available by the name of `$routeCollector`. Here's an example route file:
+The called route file will have a variable available by the name of `$routeCollector` (and a shortcut variable of `$r` if you prefer brevity). Here's an example route file:
 
 ```php
 <?php
 declare(strict_types=1);
 
+/** @var \FastRoute\RouteCollector $r */
 /** @var \FastRoute\RouteCollector $routeCollector */
 
 $routeCollector->get(
@@ -127,13 +147,13 @@ $routeCollector->get(
 $routeCollector->get('/another/route', \someclass\Thing::class);
 ```
 
-## ActionParams
+### ActionParams
 
 Action params are available as either query params `/some-uri?action=myAction` on `get` requests or as post body params on `post` request `action=someAction`.
 
 Actions are processed before routes and are great for handling, say, post requests and if the post request does not validate, then the route will continue to process. If the post request does validate, you could redirect to a new page or return a response of some kind.
 
-In order to request an action, action config will need to be set up. Your app or any composer package can defined an action param config file in the `extra` object of composer.json with the `httpActionConfigFilePath` key:
+In order to request an action, action config will need to be set up. Your app or any composer package can define an action param config file in the `extra` object of composer.json with the `httpActionConfigFilePath` key:
 
 ```json
 {
@@ -161,7 +181,22 @@ return [
 ];
 ```
 
-## Twig Extension
+#### Disabling Action Params
+
+You can also disable action params altogether in the JSON extra object like so:
+
+```json
+{
+    "name": "my/app",
+    "extra": {
+        "corbomiteHttpConfig": {
+            "disableActionParamMiddleware": true
+        }
+    }
+}
+```
+
+### Twig Extension
 
 Corbomite HTTP provides a [Twig](https://twig.symfony.com/) extension. If you're using [Corbomite Twig](https://github.com/buzzingpixel/corbomite-twig) this extension will be loaded automatically. Otherwise, you can add it to your own Twig instance Twig's `addExtension()` method like this:
 
@@ -182,25 +217,25 @@ $twig = new Environment(new FilesystemLoader('/path/to/templates'), [
 $twig->addExtension(new HttpTwigExtension());
 ```
 
-### `{{ throwHttpError() }}`
+#### `{{ throwHttpError() }}`
 
 This twig function is for throwing an HTTP error from Twig. The default is to throw the 404 exception. Pass 500 in as an argument throw a 500 internal server error.
 
-### `{{ getCsrfFormKey() }}`
+#### `{{ getCsrfFormKey() }}`
 
 Gets the form key name for the CSRF token.
 
-### `{{ generateCsrfToken() }}`
+#### `{{ generateCsrfToken() }}`
 
 Generates and outputs a CSRF token.
 
-### `{{ getCsrfInput() }}`
+#### `{{ getCsrfInput() }}`
 
 Outputs a hidden input for the CSRF token.
 
 ## License
 
-Copyright 2018 BuzzingPixel, LLC
+Copyright 2019 BuzzingPixel, LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
