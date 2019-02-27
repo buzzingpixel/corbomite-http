@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
-use corbomite\di\Di;
 use corbomite\http\Kernel;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
@@ -12,6 +11,7 @@ use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
 use Psr\Http\Message\UriInterface;
 use corbomite\http\ActionParamRouter;
+use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
@@ -64,21 +64,14 @@ class IncomingMiddlewareSecondArgTest extends TestCase
                 TESTS_BASE_PATH . '/Kernel/RequireFile.php'
             ]);
 
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
-        $di->method('hasDefinition')
+        $di->method('has')
             ->willReturnCallback(function ($key) {
                 return $key === MiddlewareClass::class;
             });
 
-        $di->expects(self::once())
-            ->method('getFromDefinition')
-            ->with(
-                self::equalTo(Collector::class)
-            )
-            ->willReturn($collector);
-
-        $di->method('makeFromDefinition')
+        $di->method('get')
             ->willReturnCallback(
                 function (string $class) use (
                     $actionParamRouter,
@@ -86,7 +79,8 @@ class IncomingMiddlewareSecondArgTest extends TestCase
                     $emitter,
                     $relayFactory,
                     $csrfMiddleware,
-                    $serverRequest
+                    $serverRequest,
+                    $collector
                 ) {
                     switch ($class) {
                         case ActionParamRouter::class:
@@ -103,6 +97,8 @@ class IncomingMiddlewareSecondArgTest extends TestCase
                             return $serverRequest;
                         case MiddlewareClass::class:
                             return new MiddlewareClass();
+                        case Collector::class:
+                            return $collector;
                         default:
                             throw new \Exception('Unknown class');
                     }

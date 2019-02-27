@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
-use corbomite\di\Di;
 use Whoops\Run as WhoopsRun;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
@@ -13,6 +12,7 @@ use Grafikart\Csrf\CsrfMiddleware;
 use Psr\Http\Message\UriInterface;
 use Whoops\Handler\PrettyPageHandler;
 use corbomite\http\ActionParamRouter;
+use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Franzl\Middleware\Whoops\WhoopsMiddleware;
@@ -72,16 +72,9 @@ class DevModeTest extends TestCase
                 TESTS_BASE_PATH . '/Kernel/RequireFile.php'
             ]);
 
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
-        $di->expects(self::once())
-            ->method('getFromDefinition')
-            ->with(
-                self::equalTo(Collector::class)
-            )
-            ->willReturn($collector);
-
-        $di->method('makeFromDefinition')
+        $di->method('get')
             ->willReturnCallback(
                 function (string $class) use (
                     $actionParamRouter,
@@ -89,7 +82,8 @@ class DevModeTest extends TestCase
                     $emitter,
                     $relayFactory,
                     $csrfMiddleware,
-                    $serverRequest
+                    $serverRequest,
+                    $collector
                 ) {
                     switch ($class) {
                         case ActionParamRouter::class:
@@ -112,6 +106,8 @@ class DevModeTest extends TestCase
                             return new PrettyPageHandler();
                         case WhoopsMiddleware::class:
                             return new WhoopsMiddleware();
+                        case Collector::class:
+                            return $collector;
                         default:
                             throw new \Exception('Unknown class');
                     }

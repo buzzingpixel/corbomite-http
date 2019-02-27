@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
-use corbomite\di\Di;
 use corbomite\http\Kernel;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
 use Psr\Http\Message\UriInterface;
+use Psr\Container\ContainerInterface;
 use corbomite\http\ActionParamRouter;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
@@ -70,16 +70,9 @@ class CsrfExemptSegmentsTest extends TestCase
                 TESTS_BASE_PATH . '/Kernel/RequireFile.php'
             ]);
 
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
-        $di->expects(self::once())
-            ->method('getFromDefinition')
-            ->with(
-                self::equalTo(Collector::class)
-            )
-            ->willReturn($collector);
-
-        $di->method('makeFromDefinition')
+        $di->method('get')
             ->willReturnCallback(
                 function (string $class) use (
                     $actionParamRouter,
@@ -87,7 +80,8 @@ class CsrfExemptSegmentsTest extends TestCase
                     $emitter,
                     $relayFactory,
                     $csrfMiddleware,
-                    $serverRequest
+                    $serverRequest,
+                    $collector
                 ) {
                     switch ($class) {
                         case ActionParamRouter::class:
@@ -102,6 +96,8 @@ class CsrfExemptSegmentsTest extends TestCase
                             return $csrfMiddleware;
                         case ServerRequest::class:
                             return $serverRequest;
+                        case Collector::class:
+                            return $collector;
                         default:
                             throw new \Exception('Unknown class');
                     }
