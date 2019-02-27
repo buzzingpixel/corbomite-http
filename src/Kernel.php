@@ -40,8 +40,6 @@ class Kernel
      */
     public function __invoke(?string $errorPageClass = null): void
     {
-        @session_start();
-
         // If we're in dev mode, load up error reporting
         if ($this->devMode) {
             ini_set('display_errors', '1');
