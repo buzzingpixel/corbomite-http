@@ -18,6 +18,7 @@ use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
 use Whoops\Handler\PrettyPageHandler;
 use function FastRoute\simpleDispatcher;
+use Psr\Http\Server\MiddlewareInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Franzl\Middleware\Whoops\WhoopsMiddleware;
@@ -35,11 +36,33 @@ class Kernel
     }
 
     /**
-     * @param string $errorPageClass Called (404, 500) if not in dev mode
+     * @param string|MiddlewareInterface|array $arg1
+     *        - If argument is string, must be a class that
+     *          implements MiddlewareInterface for error handling when not in
+     *          dev mode. Will attempt to get from DI
+     *        - If argument is an instance of MiddlewareInterface, it will be
+     *          added to the middleware stack as an error handler if not in
+     *          dev mode.
+     *        - If argument is array, it must be strings or instances of
+     *          MiddlewareInterface to add to the middleware stack. If this
+     *          argument is an array, the second argument will be ignored
+     * @param array $arg2 Array of class names that implement MiddlewareInterface
+     *              or instance of MiddlewareInterface
      * @throws DiException
      */
-    public function __invoke(?string $errorPageClass = null): void
+    public function __invoke($arg1 = null, array $arg2 = null): void
     {
+        $noDevErrorHandler = $arg1;
+        $incomingMiddleware = [];
+
+        if (\is_array($arg1)) {
+            $noDevErrorHandler = null;
+            $incomingMiddleware = $arg1;
+        } elseif (\is_array($arg2)) {
+            $noDevErrorHandler = $arg1;
+            $incomingMiddleware = $arg2;
+        }
+
         $collector = $this->di->getFromDefinition(Collector::class);
 
         $config = $collector->getExtraKeyAsArray('corbomiteHttpConfig');
@@ -63,18 +86,27 @@ class Kernel
         }
 
         // If we're not in dev mode, we'll want to capture all the errors
-        if (! $this->devMode && $errorPageClass) {
-            $class = null;
+        if (! $this->devMode && $noDevErrorHandler) {
+            $added = false;
 
-            if ($this->di->hasDefinition($errorPageClass)) {
-                $class = $this->di->makeFromDefinition($errorPageClass);
+            if ($noDevErrorHandler instanceof MiddlewareInterface) {
+                $middlewareQueue[] = $noDevErrorHandler;
+                $added = true;
             }
 
-            if (! $class) {
-                $class = new $errorPageClass();
-            }
+            if (! $added) {
+                $class = null;
 
-            $middlewareQueue[] = $class;
+                if ($this->di->hasDefinition($noDevErrorHandler)) {
+                    $class = $this->di->makeFromDefinition($noDevErrorHandler);
+                }
+
+                if (! $class) {
+                    $class = new $noDevErrorHandler();
+                }
+
+                $middlewareQueue[] = $class;
+            }
         }
 
         $disableCsrf = $config['disableCsrfMiddleware'] ?? false;
@@ -95,6 +127,25 @@ class Kernel
                     CsrfMiddleware::class
                 );
             }
+        }
+
+        foreach ($incomingMiddleware as $middleware) {
+            if ($middleware instanceof MiddlewareInterface) {
+                $middlewareQueue[] = $middleware;
+                continue;
+            }
+
+            $class = null;
+
+            if ($this->di->hasDefinition($middleware)) {
+                $class = $this->di->makeFromDefinition($middleware);
+            }
+
+            if (! $class) {
+                $class = new $middleware();
+            }
+
+            $middlewareQueue[] = $class;
         }
 
         $disableActionParams = $config['disableActionParamMiddleware'] ?? false;
