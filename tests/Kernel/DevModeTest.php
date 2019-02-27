@@ -28,8 +28,6 @@ class DevModeTest extends TestCase
         error_reporting(0);
 
         $_SERVER['REQUEST_URI'] = '';
-        putenv('DEV_MODE=false');
-        putenv('DEV_MODE=true');
 
         $actionParamRouter = self::createMock(ActionParamRouter::class);
 
@@ -106,7 +104,7 @@ class DevModeTest extends TestCase
                 }
             );
 
-        $kernel = new Kernel($di);
+        $kernel = new Kernel($di, true);
 
         $kernel->__invoke(KernelErrorClass::class);
 
