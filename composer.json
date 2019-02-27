@@ -6,7 +6,7 @@
     "homepage": "https://buzzingpixel.com/",
     "require": {
         "php": ">=7.2",
-        "buzzingpixel/corbomite-config-collector": "^1.0.3",
+        "buzzingpixel/corbomite-config-collector": "^1.1",
         "buzzingpixel/corbomite-di": "^1.0.1",
         "franzl/whoops-middleware": "^1.0",
         "grafikart/psr15-csrf-middleware": "^1.0",

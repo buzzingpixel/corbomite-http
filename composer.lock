@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c1f60d901c9ae1839f069c3ee77581cc",
+    "content-hash": "8195b1e03a0c8a327b620d9d31e48f11",
     "packages": [
         {
             "name": "buzzingpixel/corbomite-config-collector",
-            "version": "1.0.4",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/buzzingpixel/corbomite-config-collector.git",
-                "reference": "167c077dd1642d2cd12140a41ca96f09f09eba25"
+                "reference": "31fb8ac8d887b6924f4bf0370277c984ed982318"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/buzzingpixel/corbomite-config-collector/zipball/167c077dd1642d2cd12140a41ca96f09f09eba25",
-                "reference": "167c077dd1642d2cd12140a41ca96f09f09eba25",
+                "url": "https://api.github.com/repos/buzzingpixel/corbomite-config-collector/zipball/31fb8ac8d887b6924f4bf0370277c984ed982318",
+                "reference": "31fb8ac8d887b6924f4bf0370277c984ed982318",
                 "shasum": ""
             },
             "require": {
@@ -49,7 +49,7 @@
                 }
             ],
             "description": "Corbomite Config Collector",
-            "time": "2019-01-13T00:17:00+00:00"
+            "time": "2019-02-27T14:41:32+00:00"
         },
         {
             "name": "buzzingpixel/corbomite-di",
