@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace corbomite\tests\ActionParamRouter;
 
 use Exception;
-use corbomite\di\Di;
 use PHPUnit\Framework\TestCase;
 use corbomite\http\ActionParamRouter;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use corbomite\configcollector\Collector;
 use Psr\Http\Message\ServerRequestInterface;
@@ -30,10 +30,10 @@ class ActionClassDoesNotExistTest extends TestCase
                 ],
             ]);
 
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
         $di->expects(self::once())
-            ->method('getFromDefinition')
+            ->method('get')
             ->with(
                 self::equalTo(Collector::class)
             )

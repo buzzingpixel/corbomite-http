@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace corbomite\tests\ActionParamRouter;
 
 use Exception;
-use corbomite\di\Di;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use corbomite\http\ActionParamRouter;
 use corbomite\configcollector\Collector;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,10 +24,10 @@ class NoActionConfigGetMethodTest extends TestCase
             )
             ->willReturn([]);
 
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
         $di->expects(self::once())
-            ->method('getFromDefinition')
+            ->method('get')
             ->with(
                 self::equalTo(Collector::class)
             )

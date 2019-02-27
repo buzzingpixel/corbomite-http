@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace corbomite\http;
 
 use Exception;
-use corbomite\di\Di;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use corbomite\configcollector\Collector;
@@ -21,7 +21,7 @@ class ActionParamRouter implements MiddlewareInterface
 {
     private $di;
 
-    public function __construct(Di $di)
+    public function __construct(ContainerInterface $di)
     {
         $this->di = $di;
     }
@@ -57,7 +57,7 @@ class ActionParamRouter implements MiddlewareInterface
             }
         }
 
-        $actionConfig = $this->di->getFromDefinition(Collector::class)->collect(
+        $actionConfig = $this->di->get(Collector::class)->collect(
             'httpActionConfigFilePath'
         );
 
@@ -81,8 +81,8 @@ class ActionParamRouter implements MiddlewareInterface
 
         $constructedClass = null;
 
-        if ($this->di->hasDefinition($actionClass)) {
-            $constructedClass = $this->di->makeFromDefinition($actionClass);
+        if ($this->di->has($actionClass)) {
+            $constructedClass = $this->di->get($actionClass);
         }
 
         if (! $constructedClass) {
