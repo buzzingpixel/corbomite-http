@@ -22,6 +22,7 @@ use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Franzl\Middleware\Whoops\WhoopsMiddleware;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use Zend\HttpHandlerRunner\Emitter\EmitterStack;
 
 class Kernel
 {
@@ -163,7 +164,13 @@ class Kernel
 
         $middlewareQueue[] = $this->di->get(RequestHandler::class);
 
-        $this->di->get(SapiEmitter::class)->emit(
+        $emitterStack = $this->di->get(EmitterStack::class);
+
+        $emitterStack->push($this->di->get(SapiEmitter::class));
+
+        $emitterStack->push($this->di->get(ConditionalSapiStreamEmitter::class));
+
+        $emitterStack->emit(
             $this->di->get(RelayFactory::class)
                 ->make($middlewareQueue)
                 ->handle($serverRequest)

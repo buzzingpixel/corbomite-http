@@ -6,6 +6,7 @@ declare(strict_types=1);
  * @copyright 2019 BuzzingPixel, LLC
  * @license Apache-2.0
  */
+
 use corbomite\di\Di;
 use corbomite\http\Kernel;
 use Whoops\Run as WhoopsRun;
@@ -20,6 +21,9 @@ use Zend\Diactoros\ServerRequestFactory;
 use corbomite\http\factories\RelayFactory;
 use Franzl\Middleware\Whoops\WhoopsMiddleware;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use corbomite\http\ConditionalSapiStreamEmitter;
+use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use Zend\HttpHandlerRunner\Emitter\SapiStreamEmitter;
 
 return [
     Kernel::class => function () {
@@ -41,7 +45,7 @@ return [
         return new WhoopsMiddleware();
     },
     ActionParamRouter::class => function () {
-        return new ActionParamRouter(new Di());
+        return new ActionParamRouter(Di::diContainer());
     },
     RequestHandler::class => function () {
         return new RequestHandler(Di::diContainer());
@@ -63,5 +67,17 @@ return [
     },
     RequestHelper::class => function () {
         return new RequestHelper(Di::get(ServerRequest::class));
+    },
+    ConditionalSapiStreamEmitter::class => function () {
+        return new ConditionalSapiStreamEmitter(
+            Di::get(SapiStreamEmitter::class),
+            8192
+        );
+    },
+    EmitterStack::class => function () {
+        return new EmitterStack();
+    },
+    SapiStreamEmitter::class => function () {
+        return new SapiStreamEmitter();
     },
 ];

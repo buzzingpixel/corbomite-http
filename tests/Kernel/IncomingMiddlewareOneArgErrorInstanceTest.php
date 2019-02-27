@@ -15,6 +15,8 @@ use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use corbomite\http\ConditionalSapiStreamEmitter;
 
 class IncomingMiddlewareOneArgErrorInstanceTest extends TestCase
 {
@@ -71,6 +73,8 @@ class IncomingMiddlewareOneArgErrorInstanceTest extends TestCase
                 return $key === MiddlewareClass::class;
             });
 
+        $self = $this;
+
         $di->method('get')
             ->willReturnCallback(
                 function (string $class) use (
@@ -80,7 +84,8 @@ class IncomingMiddlewareOneArgErrorInstanceTest extends TestCase
                     $relayFactory,
                     $csrfMiddleware,
                     $serverRequest,
-                    $collector
+                    $collector,
+                    $self
                 ) {
                     switch ($class) {
                         case ActionParamRouter::class:
@@ -99,6 +104,12 @@ class IncomingMiddlewareOneArgErrorInstanceTest extends TestCase
                             return new MiddlewareClass();
                         case Collector::class:
                             return $collector;
+                        case EmitterStack::class:
+                            return $self->createMock(EmitterStack::class);
+                        case ConditionalSapiStreamEmitter::class:
+                            return $self->createMock(
+                                ConditionalSapiStreamEmitter::class
+                            );
                         default:
                             throw new \Exception('Unknown class');
                     }

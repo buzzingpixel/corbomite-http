@@ -14,6 +14,8 @@ use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use corbomite\http\ConditionalSapiStreamEmitter;
 
 use corbomite\http\Kernel;
 
@@ -67,6 +69,8 @@ class NoDevModeHasErrorClassNoDiTest extends TestCase
 
         $di = self::createMock(ContainerInterface::class);
 
+        $self = $this;
+
         $di->method('get')
             ->willReturnCallback(
                 function (string $class) use (
@@ -76,7 +80,8 @@ class NoDevModeHasErrorClassNoDiTest extends TestCase
                     $relayFactory,
                     $csrfMiddleware,
                     $serverRequest,
-                    $collector
+                    $collector,
+                    $self
                 ) {
                     switch ($class) {
                         case ActionParamRouter::class:
@@ -93,6 +98,12 @@ class NoDevModeHasErrorClassNoDiTest extends TestCase
                             return $serverRequest;
                         case Collector::class:
                             return $collector;
+                        case EmitterStack::class:
+                            return $self->createMock(EmitterStack::class);
+                        case ConditionalSapiStreamEmitter::class:
+                            return $self->createMock(
+                                ConditionalSapiStreamEmitter::class
+                            );
                         default:
                             throw new \Exception('Unknown class');
                     }
