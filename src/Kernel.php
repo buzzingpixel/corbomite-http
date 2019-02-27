@@ -92,9 +92,14 @@ class Kernel
             );
         }
 
-        $middlewareQueue[] = $this->di->makeFromDefinition(
-            ActionParamRouter::class
-        );
+        $disableActionParams = $config['disableActionParamMiddleware'] ?? false;
+        $disableActionParams = $disableActionParams === true;
+
+        if (! $disableActionParams) {
+            $middlewareQueue[] = $this->di->makeFromDefinition(
+                ActionParamRouter::class
+            );
+        }
 
         $middlewareQueue[] = new RouteProcessor(simpleDispatcher(
             function (RouteCollector $routeCollector) use ($collector) {
