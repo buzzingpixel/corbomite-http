@@ -43,13 +43,6 @@
         "diConfigFilePath": "src/diConfig.php",
         "twigExtensions": [
             "corbomite\\http\\HttpTwigExtension"
-        ],
-        "corbomiteHttpConfig": {
-            "csrfExemptSegments": [
-                "",
-                "stuff"
-            ],
-            "disableActionParamMiddleware": true
-        }
+        ]
     }
 }

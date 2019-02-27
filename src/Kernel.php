@@ -77,19 +77,24 @@ class Kernel
             $middlewareQueue[] = $class;
         }
 
-        $uri = trim(ltrim($serverRequest->getUri()->getPath(), '/'), '/');
-        $uri = parse_url($uri, PHP_URL_PATH) ?: '';
-        $uriSegments = explode('/', \is_string($uri) ? $uri : '');
+        $disableCsrf = $config['disableCsrfMiddleware'] ?? false;
+        $disableCsrf = $disableCsrf === true;
 
-        // Ignore these starting URI segments for CsrfChecking
-        $csrfExempt = $config['csrfExemptSegments'] ?? [];
+        if (! $disableCsrf) {
+            $uri = trim(ltrim($serverRequest->getUri()->getPath(), '/'), '/');
+            $uri = parse_url($uri, PHP_URL_PATH) ?: '';
+            $uriSegments = explode('/', \is_string($uri) ? $uri : '');
 
-        if (! in_array($uriSegments[0], $csrfExempt, true)) {
-            @session_start();
-            /** @noinspection PhpUnhandledExceptionInspection */
-            $middlewareQueue[] = $this->di->makeFromDefinition(
-                CsrfMiddleware::class
-            );
+            // Ignore these starting URI segments for CsrfChecking
+            $csrfExempt = $config['csrfExemptSegments'] ?? [];
+
+            if (! in_array($uriSegments[0], $csrfExempt, true)) {
+                @session_start();
+                /** @noinspection PhpUnhandledExceptionInspection */
+                $middlewareQueue[] = $this->di->makeFromDefinition(
+                    CsrfMiddleware::class
+                );
+            }
         }
 
         $disableActionParams = $config['disableActionParamMiddleware'] ?? false;
