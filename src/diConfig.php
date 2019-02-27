@@ -24,7 +24,7 @@ use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 return [
     Kernel::class => function () {
         return new Kernel(
-            new Di(),
+            Di::diContainer(),
             getenv('DEV_MODE') === 'true'
         );
     },

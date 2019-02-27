@@ -9,14 +9,13 @@ declare(strict_types=1);
 
 namespace corbomite\http;
 
-use corbomite\di\Di;
 use Whoops\Run as WhoopsRun;
-use corbomite\di\DiException;
 use FastRoute\RouteCollector;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
 use Whoops\Handler\PrettyPageHandler;
+use Psr\Container\ContainerInterface;
 use function FastRoute\simpleDispatcher;
 use Psr\Http\Server\MiddlewareInterface;
 use corbomite\configcollector\Collector;
@@ -29,7 +28,7 @@ class Kernel
     private $di;
     private $devMode;
 
-    public function __construct(Di $di, bool $devMode = false)
+    public function __construct(ContainerInterface $di, bool $devMode = false)
     {
         $this->di = $di;
         $this->devMode = $devMode;
@@ -48,7 +47,6 @@ class Kernel
      *          argument is an array, the second argument will be ignored
      * @param array $arg2 Array of class names that implement MiddlewareInterface
      *              or instance of MiddlewareInterface
-     * @throws DiException
      */
     public function __invoke($arg1 = null, array $arg2 = null): void
     {
@@ -63,11 +61,11 @@ class Kernel
             $incomingMiddleware = $arg2;
         }
 
-        $collector = $this->di->getFromDefinition(Collector::class);
+        $collector = $this->di->get(Collector::class);
 
         $config = $collector->getExtraKeyAsArray('corbomiteHttpConfig');
 
-        $serverRequest = $this->di->makeFromDefinition(ServerRequest::class);
+        $serverRequest = $this->di->get(ServerRequest::class);
 
         // If we're in dev mode, load up error reporting
         if ($this->devMode) {
@@ -75,14 +73,12 @@ class Kernel
             ini_set('display_startup_errors', '1');
             error_reporting(E_ALL);
             /** @noinspection PhpUnhandledExceptionInspection */
-            $whoops = $this->di->makeFromDefinition(WhoopsRun::class);
+            $whoops = $this->di->get(WhoopsRun::class);
             $whoops->pushHandler(
-                $this->di->makeFromDefinition(PrettyPageHandler::class)
+                $this->di->get(PrettyPageHandler::class)
             );
             $whoops->register();
-            $middlewareQueue[] = $this->di->makeFromDefinition(
-                WhoopsMiddleware::class
-            );
+            $middlewareQueue[] = $this->di->get(WhoopsMiddleware::class);
         }
 
         // If we're not in dev mode, we'll want to capture all the errors
@@ -97,8 +93,8 @@ class Kernel
             if (! $added) {
                 $class = null;
 
-                if ($this->di->hasDefinition($noDevErrorHandler)) {
-                    $class = $this->di->makeFromDefinition($noDevErrorHandler);
+                if ($this->di->has($noDevErrorHandler)) {
+                    $class = $this->di->get($noDevErrorHandler);
                 }
 
                 if (! $class) {
@@ -123,9 +119,7 @@ class Kernel
             if (! in_array($uriSegments[0], $csrfExempt, true)) {
                 @session_start();
                 /** @noinspection PhpUnhandledExceptionInspection */
-                $middlewareQueue[] = $this->di->makeFromDefinition(
-                    CsrfMiddleware::class
-                );
+                $middlewareQueue[] = $this->di->get(CsrfMiddleware::class);
             }
         }
 
@@ -137,8 +131,8 @@ class Kernel
 
             $class = null;
 
-            if ($this->di->hasDefinition($middleware)) {
-                $class = $this->di->makeFromDefinition($middleware);
+            if ($this->di->has($middleware)) {
+                $class = $this->di->get($middleware);
             }
 
             if (! $class) {
@@ -152,9 +146,7 @@ class Kernel
         $disableActionParams = $disableActionParams === true;
 
         if (! $disableActionParams) {
-            $middlewareQueue[] = $this->di->makeFromDefinition(
-                ActionParamRouter::class
-            );
+            $middlewareQueue[] = $this->di->get(ActionParamRouter::class);
         }
 
         $middlewareQueue[] = new RouteProcessor(simpleDispatcher(
@@ -169,12 +161,10 @@ class Kernel
             }
         ));
 
-        $middlewareQueue[] = $this->di->makeFromDefinition(
-            RequestHandler::class
-        );
+        $middlewareQueue[] = $this->di->get(RequestHandler::class);
 
-        $this->di->makeFromDefinition(SapiEmitter::class)->emit(
-            $this->di->makeFromDefinition(RelayFactory::class)
+        $this->di->get(SapiEmitter::class)->emit(
+            $this->di->get(RelayFactory::class)
                 ->make($middlewareQueue)
                 ->handle($serverRequest)
         );
