@@ -36,7 +36,7 @@ If the environment variable `DEV_MODE` is set to a string of `true`, the Kernel 
 
 If not in dev mode, and if you've provided a middleware to handle errors as described above, then your provided error middleware will be the first thing added to the middleware stack. In this way, you have a chance to render error pages in your app in production.
 
-If you send a string class name, the Kernel will attempt to get the class from the [Corbomite Dependency Injector](https://github.com/buzzingpixel/corbomite-di) and fall back to `new`ing up the class.
+If you send a string class name, the Kernel will attempt to get the class from the supplied ContainerInterface implementation and fall back to `new`ing up the class.
 
 Here's an example of an error handler middleware class:
 
