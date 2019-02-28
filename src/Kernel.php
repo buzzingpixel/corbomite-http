@@ -164,13 +164,7 @@ class Kernel
 
         $middlewareQueue[] = $this->di->get(RequestHandler::class);
 
-        $emitterStack = $this->di->get(EmitterStack::class);
-
-        $emitterStack->push($this->di->get(SapiEmitter::class));
-
-        $emitterStack->push($this->di->get(ConditionalSapiStreamEmitter::class));
-
-        $emitterStack->emit(
+        $this->di->get(EmitterStack::class)->emit(
             $this->di->get(RelayFactory::class)
                 ->make($middlewareQueue)
                 ->handle($serverRequest)

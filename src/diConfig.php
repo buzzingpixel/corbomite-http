@@ -74,10 +74,13 @@ return [
             8192
         );
     },
-    EmitterStack::class => function () {
-        return new EmitterStack();
-    },
-    SapiStreamEmitter::class => function () {
+    SapiStreamEmitter::class => static function () {
         return new SapiStreamEmitter();
+    },
+    EmitterStack::class => static function (ContainerInterface $di) {
+        $stack = new EmitterStack();
+        $stack->push($di->get(SapiEmitter::class));
+        $stack->push($di->get(ConditionalSapiStreamEmitter::class));
+        return $stack;
     },
 ];
