@@ -106,8 +106,10 @@ class Kernel
             }
         }
 
-        $disableCsrf = $config['disableCsrfMiddleware'] ?? false;
-        $disableCsrf = $disableCsrf === true;
+        $disableCsrfCheck = $config['disableCsrfMiddleware'] ?? false;
+        $disableCsrfDevMode = $config['disableCsrfMiddlewareDevMode'] ?? false;
+        $disableCsrf = $disableCsrfCheck === true ||
+            $this->devMode && $disableCsrfDevMode === true;
 
         if (! $disableCsrf) {
             $uri = trim(ltrim($serverRequest->getUri()->getPath(), '/'), '/');

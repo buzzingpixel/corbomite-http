@@ -117,6 +117,19 @@ You can also disable the CSRF middleware altogether in the JSON extra object lik
 }
 ```
 
+Or you can disable it only when in dev mode:
+
+```json
+{
+    "name": "my/app",
+    "extra": {
+        "corbomiteHttpConfig": {
+            "disableCsrfMiddlewareDevMode": true
+        }
+    }
+}
+```
+
 ### Routing
 
 Corbomite HTTP uses [FastRoute](https://github.com/nikic/FastRoute) for routing. Your app or any composer package can register routes by providing a `httpRouteConfigFilePath` in the `extra` composer.json object.
