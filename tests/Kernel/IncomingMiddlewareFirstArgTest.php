@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
+use corbomite\http\Kernel;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
@@ -17,9 +18,7 @@ use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 use Zend\HttpHandlerRunner\Emitter\EmitterStack;
 use corbomite\http\ConditionalSapiStreamEmitter;
 
-use corbomite\http\Kernel;
-
-class NoDevModeHasErrorClassNoDiTest extends TestCase
+class IncomingMiddlewareFirstArgTest extends TestCase
 {
     public function test()
     {
@@ -112,7 +111,10 @@ class NoDevModeHasErrorClassNoDiTest extends TestCase
 
         $kernel = new Kernel($di);
 
-        $kernel->__invoke(KernelErrorClass::class);
+        $kernel->__invoke([
+            MiddlewareClass::class,
+            new MiddlewareClass()
+        ]);
 
         self::assertIsBool($_SERVER['REQUIRE_FILE']);
         self::assertTrue($_SERVER['REQUIRE_FILE']);

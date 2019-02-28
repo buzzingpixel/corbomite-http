@@ -4,24 +4,24 @@ declare(strict_types=1);
 namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
-use corbomite\di\Di;
 use corbomite\http\Kernel;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
+use Psr\Http\Message\UriInterface;
 use corbomite\http\ActionParamRouter;
+use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use corbomite\http\ConditionalSapiStreamEmitter;
 
 class NoDevModeNoErrorClassTest extends TestCase
 {
     public function test()
     {
-        $_SERVER['REQUEST_URI'] = '';
-        putenv('DEV_MODE=false');
-
         $actionParamRouter = self::createMock(ActionParamRouter::class);
 
         $requestHandler = self::createMock(RequestHandler::class);
@@ -36,11 +36,26 @@ class NoDevModeNoErrorClassTest extends TestCase
             ->method('make')
             ->willReturn($requestHandlerFromRelay);
 
+        $uriInterface = self::createMock(UriInterface::class);
+
+        $uriInterface->expects(self::once())
+            ->method('getPath')
+            ->willReturn('');
+
         $serverRequest = self::createMock(ServerRequest::class);
+
+        $serverRequest->expects(self::once())
+            ->method('getUri')
+            ->willReturn($uriInterface);
 
         $csrfMiddleware = self::createMock(CsrfMiddleware::class);
 
         $collector = self::createMock(Collector::class);
+
+        $collector->expects(self::once())
+            ->method('getExtraKeyAsArray')
+            ->with(self::equalTo('corbomiteHttpConfig'))
+            ->willReturn([]);
 
         $collector->expects(self::once())
             ->method('getPathsFromExtraKey')
@@ -51,16 +66,11 @@ class NoDevModeNoErrorClassTest extends TestCase
                 TESTS_BASE_PATH . '/Kernel/RequireFile.php'
             ]);
 
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
-        $di->expects(self::once())
-            ->method('getFromDefinition')
-            ->with(
-                self::equalTo(Collector::class)
-            )
-            ->willReturn($collector);
+        $self = $this;
 
-        $di->method('makeFromDefinition')
+        $di->method('get')
             ->willReturnCallback(
                 function (string $class) use (
                     $actionParamRouter,
@@ -68,7 +78,9 @@ class NoDevModeNoErrorClassTest extends TestCase
                     $emitter,
                     $relayFactory,
                     $csrfMiddleware,
-                    $serverRequest
+                    $serverRequest,
+                    $collector,
+                    $self
                 ) {
                     switch ($class) {
                         case ActionParamRouter::class:
@@ -83,6 +95,14 @@ class NoDevModeNoErrorClassTest extends TestCase
                             return $csrfMiddleware;
                         case ServerRequest::class:
                             return $serverRequest;
+                        case Collector::class:
+                            return $collector;
+                        case EmitterStack::class:
+                            return $self->createMock(EmitterStack::class);
+                        case ConditionalSapiStreamEmitter::class:
+                            return $self->createMock(
+                                ConditionalSapiStreamEmitter::class
+                            );
                         default:
                             throw new \Exception('Unknown class');
                     }
@@ -94,6 +114,6 @@ class NoDevModeNoErrorClassTest extends TestCase
         $kernel->__invoke();
 
         self::assertIsBool($_SERVER['REQUIRE_FILE']);
-        self::assertTrue($_SERVER['REQUIRE_FILE']   );
+        self::assertTrue($_SERVER['REQUIRE_FILE']);
     }
 }

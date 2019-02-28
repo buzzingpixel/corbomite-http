@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace corbomite\tests\ActionParamRouter;
 
-use corbomite\di\Di;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use corbomite\http\ActionParamRouter;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -14,7 +14,7 @@ class NoMethodNoActionTest extends TestCase
 {
     public function test()
     {
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
         $obj = new ActionParamRouter($di);
 

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace corbomite\tests\ActionParamRouter;
 
-use corbomite\di\Di;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use corbomite\http\ActionParamRouter;
 use Psr\Http\Message\ResponseInterface;
 use corbomite\configcollector\Collector;
@@ -28,22 +28,6 @@ class DiHasClassTest extends TestCase
                     'method' => 'callableMethod',
                 ],
             ]);
-
-        $di = self::createMock(Di::class);
-
-        $di->expects(self::once())
-            ->method('getFromDefinition')
-            ->with(
-                self::equalTo(Collector::class)
-            )
-            ->willReturn($collectorMock);
-
-        $di->expects(self::exactly(1))
-            ->method('hasDefinition')
-            ->with(
-                self::equalTo(CallableClassMock::class)
-            )
-            ->willReturn(true);
 
         $requestMock = self::createMock(ServerRequestInterface::class);
 
@@ -73,12 +57,31 @@ class DiHasClassTest extends TestCase
             )
             ->willReturn($altResponse);
 
-        $di->expects(self::once())
-            ->method('makeFromDefinition')
+        $di = self::createMock(ContainerInterface::class);
+
+        $di->expects(self::exactly(2))
+            ->method('get')
+            ->willReturn($collectorMock)
+            ->willReturnCallback(function ($key) use (
+                $collectorMock,
+                $callableClassMockMock
+            ) {
+                switch ($key) {
+                    case Collector::class:
+                        return $collectorMock;
+                    case CallableClassMock::class:
+                        return $callableClassMockMock;
+                    default:
+                        throw new \Exception('Unknown Class');
+                }
+            });
+
+        $di->expects(self::exactly(1))
+            ->method('has')
             ->with(
                 self::equalTo(CallableClassMock::class)
             )
-            ->willReturn($callableClassMockMock);
+            ->willReturn(true);
 
         $handlerMock = self::createMock(RequestHandlerInterface::class);
 

@@ -4,22 +4,21 @@ declare(strict_types=1);
 namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
+use corbomite\http\Kernel;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
 use Psr\Http\Message\UriInterface;
-use corbomite\http\ActionParamRouter;
 use Psr\Container\ContainerInterface;
+use corbomite\http\ActionParamRouter;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 use Zend\HttpHandlerRunner\Emitter\EmitterStack;
 use corbomite\http\ConditionalSapiStreamEmitter;
 
-use corbomite\http\Kernel;
-
-class NoDevModeHasErrorClassNoDiTest extends TestCase
+class CsrfExemptSegmentsTest extends TestCase
 {
     public function test()
     {
@@ -41,7 +40,7 @@ class NoDevModeHasErrorClassNoDiTest extends TestCase
 
         $uriInterface->expects(self::once())
             ->method('getPath')
-            ->willReturn('');
+            ->willReturn('/test-segment/asdf');
 
         $serverRequest = self::createMock(ServerRequest::class);
 
@@ -56,7 +55,13 @@ class NoDevModeHasErrorClassNoDiTest extends TestCase
         $collector->expects(self::once())
             ->method('getExtraKeyAsArray')
             ->with(self::equalTo('corbomiteHttpConfig'))
-            ->willReturn([]);
+            ->willReturn([
+                'csrfExemptSegments' => [
+                    '',
+                    'adsf',
+                    'test-segment',
+                ],
+            ]);
 
         $collector->expects(self::once())
             ->method('getPathsFromExtraKey')
@@ -112,7 +117,7 @@ class NoDevModeHasErrorClassNoDiTest extends TestCase
 
         $kernel = new Kernel($di);
 
-        $kernel->__invoke(KernelErrorClass::class);
+        $kernel->__invoke();
 
         self::assertIsBool($_SERVER['REQUIRE_FILE']);
         self::assertTrue($_SERVER['REQUIRE_FILE']);

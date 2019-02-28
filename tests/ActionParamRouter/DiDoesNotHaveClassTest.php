@@ -3,11 +3,10 @@ declare(strict_types=1);
 
 namespace corbomite\tests\ActionParamRouter;
 
-use corbomite\di\Di;
 use Zend\Diactoros\Response;
 use PHPUnit\Framework\TestCase;
 use corbomite\http\ActionParamRouter;
-use Psr\Http\Message\ResponseInterface;
+use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -30,17 +29,17 @@ class DiDoesNotHaveClassTest extends TestCase
                 ],
             ]);
 
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
         $di->expects(self::once())
-            ->method('getFromDefinition')
+            ->method('get')
             ->with(
                 self::equalTo(Collector::class)
             )
             ->willReturn($collectorMock);
 
         $di->expects(self::exactly(1))
-            ->method('hasDefinition')
+            ->method('has')
             ->with(
                 self::equalTo(CallableClassMock::class)
             )

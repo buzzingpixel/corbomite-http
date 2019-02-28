@@ -4,18 +4,21 @@ declare(strict_types=1);
 namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
-use corbomite\di\Di;
 use Whoops\Run as WhoopsRun;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
+use Psr\Http\Message\UriInterface;
 use Whoops\Handler\PrettyPageHandler;
 use corbomite\http\ActionParamRouter;
+use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
 use Franzl\Middleware\Whoops\WhoopsMiddleware;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use corbomite\http\ConditionalSapiStreamEmitter;
 
 use corbomite\http\Kernel;
 
@@ -26,10 +29,6 @@ class DevModeTest extends TestCase
         ini_set('display_errors', '0');
         ini_set('display_startup_errors', '0');
         error_reporting(0);
-
-        $_SERVER['REQUEST_URI'] = '';
-        putenv('DEV_MODE=false');
-        putenv('DEV_MODE=true');
 
         $actionParamRouter = self::createMock(ActionParamRouter::class);
 
@@ -45,11 +44,26 @@ class DevModeTest extends TestCase
             ->method('make')
             ->willReturn($requestHandlerFromRelay);
 
+        $uriInterface = self::createMock(UriInterface::class);
+
+        $uriInterface->expects(self::once())
+            ->method('getPath')
+            ->willReturn('');
+
         $serverRequest = self::createMock(ServerRequest::class);
+
+        $serverRequest->expects(self::once())
+            ->method('getUri')
+            ->willReturn($uriInterface);
 
         $csrfMiddleware = self::createMock(CsrfMiddleware::class);
 
         $collector = self::createMock(Collector::class);
+
+        $collector->expects(self::once())
+            ->method('getExtraKeyAsArray')
+            ->with(self::equalTo('corbomiteHttpConfig'))
+            ->willReturn([]);
 
         $collector->expects(self::once())
             ->method('getPathsFromExtraKey')
@@ -60,16 +74,11 @@ class DevModeTest extends TestCase
                 TESTS_BASE_PATH . '/Kernel/RequireFile.php'
             ]);
 
-        $di = self::createMock(Di::class);
+        $di = self::createMock(ContainerInterface::class);
 
-        $di->expects(self::once())
-            ->method('getFromDefinition')
-            ->with(
-                self::equalTo(Collector::class)
-            )
-            ->willReturn($collector);
+        $self = $this;
 
-        $di->method('makeFromDefinition')
+        $di->method('get')
             ->willReturnCallback(
                 function (string $class) use (
                     $actionParamRouter,
@@ -77,7 +86,9 @@ class DevModeTest extends TestCase
                     $emitter,
                     $relayFactory,
                     $csrfMiddleware,
-                    $serverRequest
+                    $serverRequest,
+                    $collector,
+                    $self
                 ) {
                     switch ($class) {
                         case ActionParamRouter::class:
@@ -100,13 +111,21 @@ class DevModeTest extends TestCase
                             return new PrettyPageHandler();
                         case WhoopsMiddleware::class:
                             return new WhoopsMiddleware();
+                        case Collector::class:
+                            return $collector;
+                        case EmitterStack::class:
+                            return $self->createMock(EmitterStack::class);
+                        case ConditionalSapiStreamEmitter::class:
+                            return $self->createMock(
+                                ConditionalSapiStreamEmitter::class
+                            );
                         default:
                             throw new \Exception('Unknown class');
                     }
                 }
             );
 
-        $kernel = new Kernel($di);
+        $kernel = new Kernel($di, true);
 
         $kernel->__invoke(KernelErrorClass::class);
 
