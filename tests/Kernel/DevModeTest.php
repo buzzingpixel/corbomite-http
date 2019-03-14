@@ -4,18 +4,16 @@ declare(strict_types=1);
 namespace corbomite\tests\Kernel;
 
 use Relay\Relay;
-use Whoops\Run as WhoopsRun;
+use Middlewares\Whoops;
 use PHPUnit\Framework\TestCase;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
 use Psr\Http\Message\UriInterface;
-use Whoops\Handler\PrettyPageHandler;
 use corbomite\http\ActionParamRouter;
 use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
-use Franzl\Middleware\Whoops\WhoopsMiddleware;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 use Zend\HttpHandlerRunner\Emitter\EmitterStack;
 use corbomite\http\ConditionalSapiStreamEmitter;
@@ -105,12 +103,8 @@ class DevModeTest extends TestCase
                             return $serverRequest;
                         case KernelErrorClass::class:
                             return new KernelErrorClass();
-                        case WhoopsRun::class:
-                            return new WhoopsRun();
-                        case PrettyPageHandler::class:
-                            return new PrettyPageHandler();
-                        case WhoopsMiddleware::class:
-                            return new WhoopsMiddleware();
+                        case Whoops::class:
+                            return new Whoops();
                         case Collector::class:
                             return $collector;
                         case EmitterStack::class:
@@ -125,6 +119,7 @@ class DevModeTest extends TestCase
                 }
             );
 
+        /** @noinspection PhpParamsInspection */
         $kernel = new Kernel($di, true);
 
         $kernel->__invoke(KernelErrorClass::class);

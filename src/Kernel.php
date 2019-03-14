@@ -9,19 +9,16 @@ declare(strict_types=1);
 
 namespace corbomite\http;
 
-use Whoops\Run as WhoopsRun;
+use Middlewares\Whoops;
 use FastRoute\RouteCollector;
 use Middlewares\RequestHandler;
 use Zend\Diactoros\ServerRequest;
 use Grafikart\Csrf\CsrfMiddleware;
-use Whoops\Handler\PrettyPageHandler;
 use Psr\Container\ContainerInterface;
 use function FastRoute\simpleDispatcher;
 use Psr\Http\Server\MiddlewareInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
-use Franzl\Middleware\Whoops\WhoopsMiddleware;
-use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 use Zend\HttpHandlerRunner\Emitter\EmitterStack;
 
 class Kernel
@@ -74,12 +71,7 @@ class Kernel
             ini_set('display_startup_errors', '1');
             error_reporting(E_ALL);
             /** @noinspection PhpUnhandledExceptionInspection */
-            $whoops = $this->di->get(WhoopsRun::class);
-            $whoops->pushHandler(
-                $this->di->get(PrettyPageHandler::class)
-            );
-            $whoops->register();
-            $middlewareQueue[] = $this->di->get(WhoopsMiddleware::class);
+            $middlewareQueue[] = $this->di->get(Whoops::class);
         }
 
         // If we're not in dev mode, we'll want to capture all the errors

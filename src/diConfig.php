@@ -7,6 +7,7 @@ declare(strict_types=1);
  * @license Apache-2.0
  */
 
+use Middlewares\Whoops;
 use corbomite\http\Kernel;
 use Whoops\Run as WhoopsRun;
 use Middlewares\RequestHandler;
@@ -19,7 +20,6 @@ use Whoops\Handler\PrettyPageHandler;
 use Psr\Container\ContainerInterface;
 use Zend\Diactoros\ServerRequestFactory;
 use corbomite\http\factories\RelayFactory;
-use Franzl\Middleware\Whoops\WhoopsMiddleware;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 use corbomite\http\ConditionalSapiStreamEmitter;
 use Zend\HttpHandlerRunner\Emitter\EmitterStack;
@@ -41,8 +41,19 @@ return [
     CsrfMiddleware::class => static function () {
         return new CsrfMiddleware($_SESSION, 200);
     },
-    WhoopsMiddleware::class => static function () {
-        return new WhoopsMiddleware();
+    Whoops::class => static function (ContainerInterface $di) {
+        return new Whoops($di->get('CorbomiteHttp.WhoopsRunConfigured'));
+    },
+    'CorbomiteHttp.WhoopsRunConfigured' => static function (ContainerInterface $di) {
+        $whoops = $di->get(WhoopsRun::class);
+
+        $whoops->pushHandler(
+            $di->get(PrettyPageHandler::class)
+        );
+
+        $whoops->register();
+
+        return $whoops;
     },
     ActionParamRouter::class => static function (ContainerInterface $di) {
         return new ActionParamRouter($di);
