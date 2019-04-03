@@ -1,13 +1,12 @@
 <?php
 
-/**
- * @author TJ Draper <tj@buzzingpixel.com>
- * @copyright 2019 BuzzingPixel, LLC
- * @license Apache-2.0
- */
+declare(strict_types=1);
 
-/** @var \FastRoute\RouteCollector $routeCollector */
+use FastRoute\RouteCollector;
 
-$routeCollector->get('/test', function () {
+/** @var RouteCollector $r */
+/** @var RouteCollector $routeCollector */
+
+$routeCollector->get('/test', static function () {
     return 'thingy';
 });

@@ -1,25 +1,22 @@
 <?php
-declare(strict_types=1);
 
-/**
- * @author TJ Draper <tj@buzzingpixel.com>
- * @copyright 2019 BuzzingPixel, LLC
- * @license Apache-2.0
- */
+declare(strict_types=1);
 
 namespace corbomite\http;
 
-use Twig_Markup;
-use Twig_Function;
-use Twig_Extension;
-use Grafikart\Csrf\CsrfMiddleware;
 use corbomite\http\exceptions\Http404Exception;
 use corbomite\http\exceptions\Http500Exception;
 use corbomite\http\interfaces\RequestHelperInterface;
+use Grafikart\Csrf\CsrfMiddleware;
+use Twig\Extension\AbstractExtension;
+use Twig\Markup;
+use Twig\TwigFunction;
 
-class HttpTwigExtension extends Twig_Extension
+class HttpTwigExtension extends AbstractExtension
 {
+    /** @var CsrfMiddleware */
     private $csrfMiddleware;
+    /** @var RequestHelperInterface */
     private $requestHelper;
 
     public function __construct(
@@ -27,17 +24,20 @@ class HttpTwigExtension extends Twig_Extension
         RequestHelperInterface $requestHelper
     ) {
         $this->csrfMiddleware = $csrfMiddleware;
-        $this->requestHelper = $requestHelper;
+        $this->requestHelper  = $requestHelper;
     }
 
-    public function getFunctions(): array
+    /**
+     * @return TwigFunction[]
+     */
+    public function getFunctions() : array
     {
         return [
-            new Twig_Function('throwHttpError', [$this, 'throwHttpError']),
-            new Twig_Function('getCsrfFormKey', [$this, 'getCsrfFormKey']),
-            new Twig_Function('generateCsrfToken', [$this, 'generateCsrfToken']),
-            new Twig_Function('getCsrfInput', [$this, 'getCsrfInput']),
-            new Twig_Function('requestHelper', [$this, 'requestHelper']),
+            new TwigFunction('throwHttpError', [$this, 'throwHttpError']),
+            new TwigFunction('getCsrfFormKey', [$this, 'getCsrfFormKey']),
+            new TwigFunction('generateCsrfToken', [$this, 'generateCsrfToken']),
+            new TwigFunction('getCsrfInput', [$this, 'getCsrfInput']),
+            new TwigFunction('requestHelper', [$this, 'requestHelper']),
         ];
     }
 
@@ -45,7 +45,7 @@ class HttpTwigExtension extends Twig_Extension
      * @throws Http404Exception
      * @throws Http500Exception
      */
-    public function throwHttpError(int $code = 404, string $msg = ''): void
+    public function throwHttpError(int $code = 404, string $msg = '') : void
     {
         if ($code === 404) {
             throw new Http404Exception($msg);
@@ -54,20 +54,20 @@ class HttpTwigExtension extends Twig_Extension
         throw new Http500Exception($msg);
     }
 
-    public function getCsrfFormKey(): string
+    public function getCsrfFormKey() : string
     {
         return $this->csrfMiddleware->getFormKey();
     }
 
-    public function generateCsrfToken(): string
+    public function generateCsrfToken() : string
     {
         /** @noinspection PhpUnhandledExceptionInspection */
         return $this->csrfMiddleware->generateToken();
     }
 
-    public function getCsrfInput(): Twig_Markup
+    public function getCsrfInput() : Markup
     {
-        return new Twig_Markup(
+        return new Markup(
             '<input type="hidden" name="' .
                 $this->getCsrfFormKey() .
                 '" value="' .
@@ -77,7 +77,7 @@ class HttpTwigExtension extends Twig_Extension
         );
     }
 
-    public function requestHelper(): RequestHelperInterface
+    public function requestHelper() : RequestHelperInterface
     {
         return $this->requestHelper;
     }

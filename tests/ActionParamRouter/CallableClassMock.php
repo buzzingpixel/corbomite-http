@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\ActionParamRouter;
@@ -12,8 +13,8 @@ class CallableClassMock
     public function callableMethod()
     {
         if (! $this->response) {
-            $response = new Response();
-            $response = $response->withStatus(598);
+            $response       = new Response();
+            $response       = $response->withStatus(598);
             $this->response = $response;
         }
 

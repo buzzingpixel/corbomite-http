@@ -1,18 +1,22 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\Kernel;
 
-use PHPUnit\Framework\TestCase;
-
-use Psr\Http\Message\StreamInterface;
-use Psr\Http\Message\ResponseInterface;
 use corbomite\http\ConditionalSapiStreamEmitter;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
+use Throwable;
 use Zend\HttpHandlerRunner\Emitter\SapiStreamEmitter;
 
 class ContentRangeNotEmptyTest extends TestCase
 {
-    public function test()
+    /**
+     * @throws Throwable
+     */
+    public function test() : void
     {
         $body = $this->createMock(StreamInterface::class);
 
@@ -38,8 +42,10 @@ class ContentRangeNotEmptyTest extends TestCase
             ->with(self::equalTo($response))
             ->willReturn(true);
 
+        /** @noinspection PhpParamsInspection */
         $emitter = new ConditionalSapiStreamEmitter($streamEmitter, 9);
 
+        /** @noinspection PhpParamsInspection */
         self::assertTrue($emitter->emit($response));
     }
 }

@@ -1,24 +1,24 @@
 <?php
-declare(strict_types=1);
 
-/**
- * @author TJ Draper <tj@buzzingpixel.com>
- * @copyright 2019 BuzzingPixel, LLC
- * @license Apache-2.0
- */
+declare(strict_types=1);
 
 namespace corbomite\http;
 
+use corbomite\configcollector\Collector;
 use Exception;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use corbomite\configcollector\Collector;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use function class_exists;
+use function is_string;
+use function method_exists;
+use function strtolower;
 
 class ActionParamRouter implements MiddlewareInterface
 {
+    /** @var ContainerInterface $di */
     private $di;
 
     public function __construct(ContainerInterface $di)
@@ -32,7 +32,7 @@ class ActionParamRouter implements MiddlewareInterface
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
-    ): ResponseInterface {
+    ) : ResponseInterface {
         $requestMethod = strtolower(
             $request->getServerParams()['REQUEST_METHOD'] ?? 'get'
         );
@@ -61,12 +61,18 @@ class ActionParamRouter implements MiddlewareInterface
             'httpActionConfigFilePath'
         );
 
-        $actionClass = $actionConfig[$action]['class'] ?? '';
-        $actionMethod = $actionConfig[$action]['method'] ?? '__invoke';
+        $actionConfig = $actionConfig[$action] ?? null;
 
-        if (! $actionClass) {
-            throw new Exception('Action class config not found');
+        if (! $actionConfig) {
+            throw new Exception('Action config not found');
         }
+
+        if (is_string($actionConfig)) {
+            $actionConfig = ['class' => $actionConfig];
+        }
+
+        $actionClass  = $actionConfig['class'] ?? '';
+        $actionMethod = $actionConfig['method'] ?? '__invoke';
 
         if (! class_exists($actionClass)) {
             throw new Exception('Action class not found');

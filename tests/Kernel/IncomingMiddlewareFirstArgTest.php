@@ -1,26 +1,32 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\Kernel;
 
-use Relay\Relay;
-use corbomite\http\Kernel;
-use PHPUnit\Framework\TestCase;
-use Middlewares\RequestHandler;
-use Zend\Diactoros\ServerRequest;
-use Grafikart\Csrf\CsrfMiddleware;
-use Psr\Http\Message\UriInterface;
-use corbomite\http\ActionParamRouter;
-use Psr\Container\ContainerInterface;
 use corbomite\configcollector\Collector;
-use corbomite\http\factories\RelayFactory;
-use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
-use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use corbomite\http\ActionParamRouter;
 use corbomite\http\ConditionalSapiStreamEmitter;
+use corbomite\http\factories\RelayFactory;
+use corbomite\http\Kernel;
+use Exception;
+use Grafikart\Csrf\CsrfMiddleware;
+use Middlewares\RequestHandler;
+use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\UriInterface;
+use Relay\Relay;
+use Throwable;
+use Zend\Diactoros\ServerRequest;
+use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 
 class IncomingMiddlewareFirstArgTest extends TestCase
 {
-    public function test()
+    /**
+     * @throws Throwable
+     */
+    public function test() : void
     {
         $actionParamRouter = self::createMock(ActionParamRouter::class);
 
@@ -62,9 +68,7 @@ class IncomingMiddlewareFirstArgTest extends TestCase
             ->with(
                 self::equalTo('httpRouteConfigFilePath')
             )
-            ->willReturn([
-                TESTS_BASE_PATH . '/Kernel/RequireFile.php'
-            ]);
+            ->willReturn([TESTS_BASE_PATH . '/Kernel/RequireFile.php']);
 
         $di = self::createMock(ContainerInterface::class);
 
@@ -72,7 +76,7 @@ class IncomingMiddlewareFirstArgTest extends TestCase
 
         $di->method('get')
             ->willReturnCallback(
-                function (string $class) use (
+                static function (string $class) use (
                     $actionParamRouter,
                     $requestHandler,
                     $emitter,
@@ -104,16 +108,17 @@ class IncomingMiddlewareFirstArgTest extends TestCase
                                 ConditionalSapiStreamEmitter::class
                             );
                         default:
-                            throw new \Exception('Unknown class');
+                            throw new Exception('Unknown class');
                     }
                 }
             );
 
+        /** @noinspection PhpParamsInspection */
         $kernel = new Kernel($di);
 
         $kernel->__invoke([
             MiddlewareClass::class,
-            new MiddlewareClass()
+            new MiddlewareClass(),
         ]);
 
         self::assertIsBool($_SERVER['REQUIRE_FILE']);

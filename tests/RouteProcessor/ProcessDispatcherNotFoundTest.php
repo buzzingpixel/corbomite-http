@@ -1,19 +1,24 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests;
 
+use corbomite\http\exceptions\Http404Exception;
+use corbomite\http\RouteProcessor;
 use FastRoute\Dispatcher;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\UriInterface;
-use corbomite\http\RouteProcessor;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use corbomite\http\exceptions\Http404Exception;
+use Throwable;
 
 class ProcessDispatcherNotFoundTest extends TestCase
 {
-    public function testProcess()
+    /**
+     * @throws Throwable
+     */
+    public function testProcess() : void
     {
         $uriMock = self::createMock(UriInterface::class);
 
@@ -47,8 +52,10 @@ class ProcessDispatcherNotFoundTest extends TestCase
 
         self::expectException(Http404Exception::class);
 
+        /** @noinspection PhpParamsInspection */
         $obj = new RouteProcessor($dispatcher);
 
+        /** @noinspection PhpParamsInspection */
         $obj->process(
             $requestMock,
             $handlerMock

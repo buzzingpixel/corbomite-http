@@ -1,28 +1,37 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\Kernel;
 
-use Relay\Relay;
+use corbomite\configcollector\Collector;
+use corbomite\http\ActionParamRouter;
+use corbomite\http\ConditionalSapiStreamEmitter;
+use corbomite\http\factories\RelayFactory;
+use corbomite\http\Kernel;
+use Exception;
+use Grafikart\Csrf\CsrfMiddleware;
+use Middlewares\RequestHandler;
 use Middlewares\Whoops;
 use PHPUnit\Framework\TestCase;
-use Middlewares\RequestHandler;
-use Zend\Diactoros\ServerRequest;
-use Grafikart\Csrf\CsrfMiddleware;
-use Psr\Http\Message\UriInterface;
-use corbomite\http\ActionParamRouter;
 use Psr\Container\ContainerInterface;
-use corbomite\configcollector\Collector;
-use corbomite\http\factories\RelayFactory;
-use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use Psr\Http\Message\UriInterface;
+use Relay\Relay;
+use Throwable;
+use Zend\Diactoros\ServerRequest;
 use Zend\HttpHandlerRunner\Emitter\EmitterStack;
-use corbomite\http\ConditionalSapiStreamEmitter;
-
-use corbomite\http\Kernel;
+use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use const E_ALL;
+use function error_reporting;
+use function ini_get;
+use function ini_set;
 
 class DevModeTest extends TestCase
 {
-    public function test()
+    /**
+     * @throws Throwable
+     */
+    public function test() : void
     {
         ini_set('display_errors', '0');
         ini_set('display_startup_errors', '0');
@@ -68,9 +77,7 @@ class DevModeTest extends TestCase
             ->with(
                 self::equalTo('httpRouteConfigFilePath')
             )
-            ->willReturn([
-                TESTS_BASE_PATH . '/Kernel/RequireFile.php'
-            ]);
+            ->willReturn([TESTS_BASE_PATH . '/Kernel/RequireFile.php']);
 
         $di = self::createMock(ContainerInterface::class);
 
@@ -78,7 +85,7 @@ class DevModeTest extends TestCase
 
         $di->method('get')
             ->willReturnCallback(
-                function (string $class) use (
+                static function (string $class) use (
                     $actionParamRouter,
                     $requestHandler,
                     $emitter,
@@ -114,7 +121,7 @@ class DevModeTest extends TestCase
                                 ConditionalSapiStreamEmitter::class
                             );
                         default:
-                            throw new \Exception('Unknown class');
+                            throw new Exception('Unknown class');
                     }
                 }
             );

@@ -1,19 +1,24 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests;
 
+use corbomite\http\RouteProcessor;
 use FastRoute\Dispatcher;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\UriInterface;
-use corbomite\http\RouteProcessor;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
 
 class ProcessFinalTest extends TestCase
 {
-    public function testProcess()
+    /**
+     * @throws Throwable
+     */
+    public function testProcess() : void
     {
         $uriMock = self::createMock(UriInterface::class);
 
@@ -55,13 +60,13 @@ class ProcessFinalTest extends TestCase
             ->willReturn([
                 '',
                 '',
-                [
-                    'attrName' => 'attrVal',
-                ]
+                ['attrName' => 'attrVal'],
             ]);
 
+        /** @noinspection PhpParamsInspection */
         $obj = new RouteProcessor($dispatcher);
 
+        /** @noinspection PhpParamsInspection */
         self::assertEquals($responseMock, $obj->process(
             $requestMock,
             $handlerMock
