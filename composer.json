@@ -46,6 +46,7 @@
         "diConfigFilePath": "src/diConfig.php",
         "twigExtensions": [
             "corbomite\\http\\HttpTwigExtension"
-        ]
+        ],
+        "httpActionConfigFilePath": "TestActionConfig.php"
     }
 }

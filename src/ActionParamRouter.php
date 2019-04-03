@@ -12,6 +12,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use function class_exists;
+use function is_string;
 use function method_exists;
 use function strtolower;
 
@@ -60,12 +61,18 @@ class ActionParamRouter implements MiddlewareInterface
             'httpActionConfigFilePath'
         );
 
-        $actionClass  = $actionConfig[$action]['class'] ?? '';
-        $actionMethod = $actionConfig[$action]['method'] ?? '__invoke';
+        $actionConfig = $actionConfig[$action] ?? null;
 
-        if (! $actionClass) {
-            throw new Exception('Action class config not found');
+        if (! $actionConfig) {
+            throw new Exception('Action config not found');
         }
+
+        if (is_string($actionConfig)) {
+            $actionConfig = ['class' => $actionConfig];
+        }
+
+        $actionClass  = $actionConfig['class'] ?? '';
+        $actionMethod = $actionConfig['method'] ?? '__invoke';
 
         if (! class_exists($actionClass)) {
             throw new Exception('Action class not found');

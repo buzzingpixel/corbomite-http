@@ -191,6 +191,7 @@ return [
     'anotherAction' => [
         'class' => \some\name\space\AnotherClass::class
     ],
+    'moreAction' => \some\name\space\AnotherClass::class,
 ];
 ```
 
