@@ -1,16 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\RequestHelper;
 
-use PHPUnit\Framework\TestCase;
 use corbomite\http\RequestHelper;
-use Psr\Http\Message\UriInterface;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
+use Throwable;
 
 class SegmentTest extends TestCase
 {
-    public function test()
+    /**
+     * @throws Throwable
+     */
+    public function test() : void
     {
         $uriMock = self::createMock(UriInterface::class);
 
@@ -24,11 +29,12 @@ class SegmentTest extends TestCase
             ->method('getUri')
             ->willReturn($uriMock);
 
+        /** @noinspection PhpParamsInspection */
         $requestHelper = new RequestHelper($requestMock);
 
         self::assertEquals(null, $requestHelper->segment(1));
 
-        /**********************************************************************/
+        // *********************************************************************
 
         $uriMock = self::createMock(UriInterface::class);
 
@@ -42,6 +48,7 @@ class SegmentTest extends TestCase
             ->method('getUri')
             ->willReturn($uriMock);
 
+        /** @noinspection PhpParamsInspection */
         $requestHelper = new RequestHelper($requestMock);
 
         self::assertEquals('test', $requestHelper->segment(1));

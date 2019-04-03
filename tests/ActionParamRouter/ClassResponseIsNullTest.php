@@ -1,19 +1,25 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\ActionParamRouter;
 
-use PHPUnit\Framework\TestCase;
+use corbomite\configcollector\Collector;
 use corbomite\http\ActionParamRouter;
+use Exception;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
-use corbomite\configcollector\Collector;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
 
 class ClassResponseIsNullTest extends TestCase
 {
-    public function test()
+    /**
+     * @throws Throwable
+     */
+    public function test() : void
     {
         $collectorMock = self::createMock(Collector::class);
 
@@ -33,15 +39,11 @@ class ClassResponseIsNullTest extends TestCase
 
         $requestMock->expects(self::once())
             ->method('getServerParams')
-            ->willReturn([
-                'REQUEST_METHOD' => 'GET',
-            ]);
+            ->willReturn(['REQUEST_METHOD' => 'GET']);
 
         $requestMock->expects(self::once())
             ->method('getQueryParams')
-            ->willReturn([
-                'action' => 'testAction',
-            ]);
+            ->willReturn(['action' => 'testAction']);
 
         $altResponse = self::createMock(ResponseInterface::class);
 
@@ -62,7 +64,7 @@ class ClassResponseIsNullTest extends TestCase
         $di->expects(self::exactly(2))
             ->method('get')
             ->willReturn($collectorMock)
-            ->willReturnCallback(function ($key) use (
+            ->willReturnCallback(static function ($key) use (
                 $collectorMock,
                 $callableClassMockMock
             ) {
@@ -72,7 +74,7 @@ class ClassResponseIsNullTest extends TestCase
                     case CallableClassMock::class:
                         return $callableClassMockMock;
                     default:
-                        throw new \Exception('Unknown Class');
+                        throw new Exception('Unknown Class');
                 }
             });
 
@@ -97,8 +99,10 @@ class ClassResponseIsNullTest extends TestCase
             )
             ->willReturn($newResponseMock);
 
+        /** @noinspection PhpParamsInspection */
         $obj = new ActionParamRouter($di);
 
+        /** @noinspection PhpParamsInspection */
         $objResponse = $obj->process($requestMock, $handlerMock);
 
         self::assertEquals($newResponseMock, $objResponse);

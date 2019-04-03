@@ -1,28 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
-/**
- * @author TJ Draper <tj@buzzingpixel.com>
- * @copyright 2019 BuzzingPixel, LLC
- * @license Apache-2.0
- */
-
-use Middlewares\Whoops;
+use corbomite\http\ActionParamRouter;
+use corbomite\http\ConditionalSapiStreamEmitter;
+use corbomite\http\factories\RelayFactory;
+use corbomite\http\HttpTwigExtension;
 use corbomite\http\Kernel;
-use Whoops\Run as WhoopsRun;
-use Middlewares\RequestHandler;
-use Zend\Diactoros\ServerRequest;
 use corbomite\http\RequestHelper;
 use Grafikart\Csrf\CsrfMiddleware;
-use corbomite\http\ActionParamRouter;
-use corbomite\http\HttpTwigExtension;
-use Whoops\Handler\PrettyPageHandler;
+use Middlewares\RequestHandler;
+use Middlewares\Whoops;
 use Psr\Container\ContainerInterface;
+use Whoops\Handler\PrettyPageHandler;
+use Whoops\Run as WhoopsRun;
+use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\ServerRequestFactory;
-use corbomite\http\factories\RelayFactory;
-use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
-use corbomite\http\ConditionalSapiStreamEmitter;
 use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 use Zend\HttpHandlerRunner\Emitter\SapiStreamEmitter;
 
 return [
@@ -32,7 +27,7 @@ return [
             getenv('DEV_MODE') === 'true'
         );
     },
-    WhoopsRun::class => function () {
+    WhoopsRun::class => static function () {
         return new WhoopsRun();
     },
     PrettyPageHandler::class => static function () {
@@ -92,6 +87,7 @@ return [
         $stack = new EmitterStack();
         $stack->push($di->get(SapiEmitter::class));
         $stack->push($di->get(ConditionalSapiStreamEmitter::class));
+
         return $stack;
     },
 ];

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\http;
@@ -12,18 +13,20 @@ use Zend\HttpHandlerRunner\Emitter\SapiStreamEmitter;
  */
 class ConditionalSapiStreamEmitter implements EmitterInterface
 {
+    /** @var SapiStreamEmitter */
     private $streamEmitter;
+    /** @var int */
     private $contentSizeThresholdInBytes;
 
     public function __construct(
         SapiStreamEmitter $streamEmitter,
         int $contentSizeThresholdInBytes
     ) {
-        $this->streamEmitter = $streamEmitter;
+        $this->streamEmitter               = $streamEmitter;
         $this->contentSizeThresholdInBytes = $contentSizeThresholdInBytes;
     }
 
-    public function emit(ResponseInterface $response): bool
+    public function emit(ResponseInterface $response) : bool
     {
         $contentSize = $response->getBody()->getSize();
 

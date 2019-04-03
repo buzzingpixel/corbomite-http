@@ -1,16 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\RequestHelper;
 
-use PHPUnit\Framework\TestCase;
 use corbomite\http\RequestHelper;
-use Psr\Http\Message\UriInterface;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
+use Throwable;
 
 class PostTest extends TestCase
 {
-    public function test()
+    /**
+     * @throws Throwable
+     */
+    public function test() : void
     {
         $uriMock = self::createMock(UriInterface::class);
 
@@ -26,15 +31,14 @@ class PostTest extends TestCase
 
         $requestMock->expects(self::exactly(1))
             ->method('getParsedBody')
-            ->willReturn([
-                'asdf' => 'thing',
-            ]);
+            ->willReturn(['asdf' => 'thing']);
 
+        /** @noinspection PhpParamsInspection */
         $requestHelper = new RequestHelper($requestMock);
 
         self::assertEquals('thing', $requestHelper->post('asdf'));
 
-        /**********************************************************************/
+        // *********************************************************************
 
         $uriMock = self::createMock(UriInterface::class);
 
@@ -50,15 +54,14 @@ class PostTest extends TestCase
 
         $requestMock->expects(self::exactly(1))
             ->method('getParsedBody')
-            ->willReturn([
-                'asdf' => 'thing',
-            ]);
+            ->willReturn(['asdf' => 'thing']);
 
+        /** @noinspection PhpParamsInspection */
         $requestHelper = new RequestHelper($requestMock);
 
         self::assertNull($requestHelper->post('stuff'));
 
-        /**********************************************************************/
+        // *********************************************************************
 
         $uriMock = self::createMock(UriInterface::class);
 
@@ -74,10 +77,9 @@ class PostTest extends TestCase
 
         $requestMock->expects(self::exactly(1))
             ->method('getParsedBody')
-            ->willReturn([
-                'asdf' => 'thing',
-            ]);
+            ->willReturn(['asdf' => 'thing']);
 
+        /** @noinspection PhpParamsInspection */
         $requestHelper = new RequestHelper($requestMock);
 
         self::assertEquals(

@@ -1,19 +1,25 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\ActionParamRouter;
 
+use corbomite\configcollector\Collector;
+use corbomite\http\ActionParamRouter;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use corbomite\http\ActionParamRouter;
 use Psr\Http\Message\ResponseInterface;
-use corbomite\configcollector\Collector;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
 
 class DiHasClassTest extends TestCase
 {
-    public function test()
+    /**
+     * @throws Throwable
+     */
+    public function test() : void
     {
         $collectorMock = self::createMock(Collector::class);
 
@@ -33,15 +39,11 @@ class DiHasClassTest extends TestCase
 
         $requestMock->expects(self::once())
             ->method('getServerParams')
-            ->willReturn([
-                'REQUEST_METHOD' => 'GET',
-            ]);
+            ->willReturn(['REQUEST_METHOD' => 'GET']);
 
         $requestMock->expects(self::once())
             ->method('getQueryParams')
-            ->willReturn([
-                'action' => 'testAction',
-            ]);
+            ->willReturn(['action' => 'testAction']);
 
         $altResponse = self::createMock(ResponseInterface::class);
 
@@ -62,7 +64,7 @@ class DiHasClassTest extends TestCase
         $di->expects(self::exactly(2))
             ->method('get')
             ->willReturn($collectorMock)
-            ->willReturnCallback(function ($key) use (
+            ->willReturnCallback(static function ($key) use (
                 $collectorMock,
                 $callableClassMockMock
             ) {
@@ -72,7 +74,7 @@ class DiHasClassTest extends TestCase
                     case CallableClassMock::class:
                         return $callableClassMockMock;
                     default:
-                        throw new \Exception('Unknown Class');
+                        throw new Exception('Unknown Class');
                 }
             });
 
@@ -85,8 +87,10 @@ class DiHasClassTest extends TestCase
 
         $handlerMock = self::createMock(RequestHandlerInterface::class);
 
+        /** @noinspection PhpParamsInspection */
         $obj = new ActionParamRouter($di);
 
+        /** @noinspection PhpParamsInspection */
         $objResponse = $obj->process($requestMock, $handlerMock);
 
         self::assertEquals($altResponse, $objResponse);

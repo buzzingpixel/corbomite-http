@@ -1,28 +1,26 @@
 <?php
-declare(strict_types=1);
 
-/**
- * @author TJ Draper <tj@buzzingpixel.com>
- * @copyright 2019 BuzzingPixel, LLC
- * @license Apache-2.0
- */
+declare(strict_types=1);
 
 namespace corbomite\http;
 
-use FastRoute\Dispatcher;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use corbomite\http\exceptions\Http404Exception;
 use corbomite\http\exceptions\Http500Exception;
+use FastRoute\Dispatcher;
 use Middlewares\Utils\Traits\HasResponseFactory;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 class RouteProcessor implements MiddlewareInterface
 {
     use HasResponseFactory;
 
+    /** @var Dispatcher */
     private $router;
+
+    /** @var string */
     private $attribute = 'request-handler';
 
     public function __construct(Dispatcher $router)
@@ -30,9 +28,10 @@ class RouteProcessor implements MiddlewareInterface
         $this->router = $router;
     }
 
-    public function attribute(string $attribute): self
+    public function attribute(string $attribute) : self
     {
         $this->attribute = $attribute;
+
         return $this;
     }
 
@@ -43,7 +42,7 @@ class RouteProcessor implements MiddlewareInterface
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
-    ): ResponseInterface {
+    ) : ResponseInterface {
         $route = $this->router->dispatch(
             $request->getMethod(),
             $request->getUri()->getPath()
@@ -69,7 +68,7 @@ class RouteProcessor implements MiddlewareInterface
     protected function setHandler(
         ServerRequestInterface $request,
         $handler
-    ): ServerRequestInterface {
+    ) : ServerRequestInterface {
         return $request->withAttribute($this->attribute, $handler);
     }
 }

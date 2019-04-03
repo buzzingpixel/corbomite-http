@@ -1,19 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
 namespace corbomite\tests\ActionParamRouter;
 
-use Exception;
+use corbomite\configcollector\Collector;
+use corbomite\http\ActionParamRouter;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use corbomite\http\ActionParamRouter;
-use corbomite\configcollector\Collector;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
 
 class NoActionConfigPostMethodTest extends TestCase
 {
-    public function test()
+    /**
+     * @throws Throwable
+     */
+    public function test() : void
     {
         $collectorMock = self::createMock(Collector::class);
 
@@ -33,26 +37,24 @@ class NoActionConfigPostMethodTest extends TestCase
             )
             ->willReturn($collectorMock);
 
+        /** @noinspection PhpParamsInspection */
         $obj = new ActionParamRouter($di);
 
         $requestMock = self::createMock(ServerRequestInterface::class);
 
         $requestMock->expects(self::once())
             ->method('getServerParams')
-            ->willReturn([
-                'REQUEST_METHOD' => 'POST',
-            ]);
+            ->willReturn(['REQUEST_METHOD' => 'POST']);
 
         $requestMock->expects(self::once())
             ->method('getParsedBody')
-            ->willReturn([
-                'action' => 'asdf',
-            ]);
+            ->willReturn(['action' => 'asdf']);
 
         $handlerMock = self::createMock(RequestHandlerInterface::class);
 
-        self::expectException(Exception::class);
+        self::expectException(Throwable::class);
 
+        /** @noinspection PhpParamsInspection */
         $obj->process($requestMock, $handlerMock);
     }
 }

@@ -1,61 +1,70 @@
 <?php
-declare(strict_types=1);
 
-/**
- * @author TJ Draper <tj@buzzingpixel.com>
- * @copyright 2019 BuzzingPixel, LLC
- * @license Apache-2.0
- */
+declare(strict_types=1);
 
 namespace corbomite\http;
 
-use Middlewares\Whoops;
-use FastRoute\RouteCollector;
-use Middlewares\RequestHandler;
-use Zend\Diactoros\ServerRequest;
-use Grafikart\Csrf\CsrfMiddleware;
-use Psr\Container\ContainerInterface;
-use function FastRoute\simpleDispatcher;
-use Psr\Http\Server\MiddlewareInterface;
 use corbomite\configcollector\Collector;
 use corbomite\http\factories\RelayFactory;
+use FastRoute\RouteCollector;
+use Grafikart\Csrf\CsrfMiddleware;
+use Middlewares\RequestHandler;
+use Middlewares\Whoops;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Zend\Diactoros\ServerRequest;
 use Zend\HttpHandlerRunner\Emitter\EmitterStack;
+use const E_ALL;
+use const PHP_URL_PATH;
+use function error_reporting;
+use function explode;
+use function FastRoute\simpleDispatcher;
+use function in_array;
+use function ini_set;
+use function is_array;
+use function is_string;
+use function ltrim;
+use function parse_url;
+use function session_start;
+use function trim;
 
 class Kernel
 {
+    /** @var ContainerInterface */
     private $di;
+    /** @var bool */
     private $devMode;
 
     public function __construct(ContainerInterface $di, bool $devMode = false)
     {
-        $this->di = $di;
+        $this->di      = $di;
         $this->devMode = $devMode;
     }
 
     /**
      * @param string|MiddlewareInterface|array $arg1
-     *        - If argument is string, must be a class that
-     *          implements MiddlewareInterface for error handling when not in
-     *          dev mode. Will attempt to get from DI
-     *        - If argument is an instance of MiddlewareInterface, it will be
-     *          added to the middleware stack as an error handler if not in
-     *          dev mode.
-     *        - If argument is array, it must be strings or instances of
-     *          MiddlewareInterface to add to the middleware stack. If this
-     *          argument is an array, the second argument will be ignored
-     * @param array $arg2 Array of class names that implement MiddlewareInterface
-     *              or instance of MiddlewareInterface
+     * - If argument is string, must be a class that
+     *   implements MiddlewareInterface for error handling when not in dev mode.
+     *   Will attempt to get from DI
+     * - If argument is an instance of MiddlewareInterface, it will be added to
+     *   the middleware stack as an error handler if not in dev mode.
+     * - If argument is array, it must be strings or instances of
+     *   MiddlewareInterface to add to the middleware stack. If this argument is
+     *   an array, the second argument will be ignored
+     * @param array                            $arg2
+     * Array of class names that implement MiddlewareInterface or instance of
+     * MiddlewareInterface
      */
-    public function __invoke($arg1 = null, array $arg2 = null): void
+    public function __invoke($arg1 = null, ?array $arg2 = null) : void
     {
-        $noDevErrorHandler = $arg1;
+        $noDevErrorHandler  = $arg1;
         $incomingMiddleware = [];
 
-        if (\is_array($arg1)) {
-            $noDevErrorHandler = null;
+        if (is_array($arg1)) {
+            $noDevErrorHandler  = null;
             $incomingMiddleware = $arg1;
-        } elseif (\is_array($arg2)) {
-            $noDevErrorHandler = $arg1;
+        } elseif (is_array($arg2)) {
+            $noDevErrorHandler  = $arg1;
             $incomingMiddleware = $arg2;
         }
 
@@ -80,7 +89,7 @@ class Kernel
 
             if ($noDevErrorHandler instanceof MiddlewareInterface) {
                 $middlewareQueue[] = $noDevErrorHandler;
-                $added = true;
+                $added             = true;
             }
 
             if (! $added) {
@@ -98,15 +107,15 @@ class Kernel
             }
         }
 
-        $disableCsrfCheck = $config['disableCsrfMiddleware'] ?? false;
+        $disableCsrfCheck   = $config['disableCsrfMiddleware'] ?? false;
         $disableCsrfDevMode = $config['disableCsrfMiddlewareDevMode'] ?? false;
-        $disableCsrf = $disableCsrfCheck === true ||
+        $disableCsrf        = $disableCsrfCheck === true ||
             $this->devMode && $disableCsrfDevMode === true;
 
         if (! $disableCsrf) {
-            $uri = trim(ltrim($serverRequest->getUri()->getPath(), '/'), '/');
-            $uri = parse_url($uri, PHP_URL_PATH) ?: '';
-            $uriSegments = explode('/', \is_string($uri) ? $uri : '');
+            $uri         = trim(ltrim($serverRequest->getUri()->getPath(), '/'), '/');
+            $uri         = parse_url($uri, PHP_URL_PATH) ?: '';
+            $uriSegments = explode('/', is_string($uri) ? $uri : '');
 
             // Ignore these starting URI segments for CsrfChecking
             $csrfExempt = $config['csrfExemptSegments'] ?? [];
@@ -145,8 +154,8 @@ class Kernel
         }
 
         $middlewareQueue[] = new RouteProcessor(simpleDispatcher(
-            function (RouteCollector $routeCollector) use ($collector) {
-                $r = $routeCollector;
+            static function (RouteCollector $routeCollector) use ($collector) : void {
+                $r     = $routeCollector;
                 $paths = $collector->getPathsFromExtraKey(
                     'httpRouteConfigFilePath'
                 );
